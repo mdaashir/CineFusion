@@ -1,44 +1,48 @@
 <!DOCTYPE html>
 <html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<meta http-equiv="refresh" content="5" />
+		<!-- Refresh the page every 5 seconds -->
+		<link rel="stylesheet" href="styles/style.css" />
+		<title>Signup</title>
+	</head>
+	<body>
+		<div class="login">
+			<div class="heading">
+				<h1>CINE FUSION</h1>
+			</div>
+			<form autocomplete="on" id="signup-form">
+				<div class="mail">
+					<label for="mail"></label>
+					<input
+						type="email"
+						name="mail"
+						id="mail"
+						placeholder="emailaddress" />
+				</div>
+				<div class="name">
+					<label for="username"></label>
+					<input type="text" placeholder="username" id="username" />
+				</div>
 
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <link rel="stylesheet" href="../css/style.css">
-        <title>Signup</title>
-    </head>
-
-    <body>
-        <div class="login">
-            <div class="heading">
-                <h1>CINE FUSION</h1>
-            </div>
-            <form autocomplete="on" id="signup-form">
-                <div class="mail">
-                    <label for="mail"></label>
-                    <input type="email" name="mail" id="mail" placeholder="emailaddress">
-                </div>
-                <div class="name">
-                    <label for="username"></label>
-                    <input type="text" placeholder="username" id="username">
-                </div>
-
-                <div class="password">
-                    <label for="password"></label>
-                    <input type="password" id="password" placeholder="password">
-                </div>
-                <div class="password">
-                    <label for="repass"></label>
-                    <input type="password" id="reenteredpass" placeholder="re-enter password">
-
-                </div>
-                <div class="loginbutton">
-                    <button type="submit">signup</button>
-                </div>
-            </form>
-            <script src="../js/verification.js"></script>
-        </div>
-
-    </body>
-
+				<div class="password">
+					<label for="password"></label>
+					<input type="password" id="password" placeholder="password" />
+				</div>
+				<div class="password">
+					<label for="repass"></label>
+					<input
+						type="password"
+						id="reenteredpass"
+						placeholder="re-enter password" />
+				</div>
+				<div class="loginbutton">
+					<button type="submit">signup</button>
+				</div>
+			</form>
+			<script src="script/verification.js"></script>
+		</div>
+	</body>
 </html>

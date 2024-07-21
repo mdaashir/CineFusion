@@ -2,6 +2,13 @@ body {
 	margin: 0;
 	background-color: #333332;
 	font-family: Arial, Helvetica, sans-serif;
+
+	margin: 0;
+	padding: 0;
+	background-size: cover;
+	background-repeat: no-repeat;
+	background-attachment: fixed;
+	transition: background 1s;
 }
 
 .topnav {
