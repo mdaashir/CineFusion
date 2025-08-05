@@ -1,0 +1,13 @@
+[project]
+name = "CineFusion Backend"
+version = "1.0.0"
+description = "A modern movie search and recommendation API with intelligent autocompletion"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.116.1",
+    "pandas>=2.3.1",
+    "psutil>=7.0.0",
+    "requests>=2.32.4",
+    "uvicorn>=0.35.0",
+]

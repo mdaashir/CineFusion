@@ -1,140 +1,137 @@
-import tkinter as tk
-from tkinter.messagebox import showinfo
+"""
+Backend-only Trie Implementation for CineFusion
+A clean implementation without GUI components for API use
+"""
 
-class Node():
+class TrieNode:
+    """Node class for Trie data structure"""
     def __init__(self):
-        self.child={}
-        self.last=False
+        self.children = {}
+        self.is_end_of_word = False
 
-class Trie():
-    lst=[]
+class Trie:
+    """
+    Trie data structure for efficient autocomplete and prefix searching
+    This is a backend-only implementation without any GUI components
+    """
+
     def __init__(self):
-        self.root=Node()
-       
-    def formTrie(self,keys):                                      #Function to access the keys from list and insert it into trie data structure.
-        for key in keys:
-            self.insert(key)
-   
-    def insert(self,key):                                         #Insert function:If not present ,inserts key into trie.
-        node=self.root                                            #If the key is prefix of trie node, just marks leaf node.
-        for a in key:
-            if not node.child.get(a):                             #If current character is not present
-                node.child[a]=Node()
-            node=node.child[a]
-        node.last=True                                             
-       
-    def suggestionRec(self,node,word):
-        
-        if node.last:
-            Trie.lst.append(word)
-        for a,n in node.child.items():
-            self.suggestionRec(n, word+a)
-   
-    def printAutoSuggestions(self,key):
+        self.root = TrieNode()
+        self.suggestions_list = []
+
+    def insert(self, word: str):
+        """Insert a word into the trie"""
+        if not word:
+            return
+
         node = self.root
-        Trie.lst.clear()
-        for a in key:
+        for char in word.lower():
+            if char not in node.children:
+                node.children[char] = TrieNode()
+            node = node.children[char]
+        node.is_end_of_word = True
 
-            if not node.child.get(a):
-                return 0
-            node = node.child[a]
-        if not node.child:
+    def formTrie(self, keys: list):
+        """Build trie from a list of keys/words"""
+        for key in keys:
+            if key and isinstance(key, str):
+                self.insert(key.strip())
+
+    def _suggestion_rec(self, node: TrieNode, word: str):
+        """Recursive helper function to collect suggestions"""
+        if len(self.suggestions_list) >= 20:  # Limit suggestions
+            return
+
+        if node.is_end_of_word:
+            self.suggestions_list.append(word)
+
+        for char, child_node in node.children.items():
+            if len(self.suggestions_list) < 20:
+                self._suggestion_rec(child_node, word + char)
+
+    def printAutoSuggestions(self, prefix: str):
+        """
+        Get autocomplete suggestions for a given prefix
+        Returns a list of suggestions or special codes:
+        - 0: No suggestions found (prefix not in trie)
+        - -1: Prefix exists but no completions available
+        - list: Valid suggestions
+        """
+        if not prefix:
+            return 0
+
+        node = self.root
+        self.suggestions_list = []
+
+        # Navigate to the prefix node
+        for char in prefix.lower():
+            if char not in node.children:
+                return 0  # Prefix not found
+            node = node.children[char]
+
+        # If no children, the prefix itself is a complete word but no suggestions
+        if not node.children:
             return -1
 
-        self.suggestionRec(node, key)
+        # Collect suggestions
+        self._suggestion_rec(node, prefix.lower())
 
-        return Trie.lst
-    
-    
-    
-keys=[]
-file = open("Autocomplete.txt","r")
+        return self.suggestions_list if self.suggestions_list else 0
 
-for word  in file:
-    keys.append(word.lower())
-    
-t1=Trie()
-t1.formTrie(keys)                                                 # Calling function of Trie to insert the list of keys into Trie
+    def search(self, word: str) -> bool:
+        """Search if a word exists in the trie"""
+        if not word:
+            return False
 
-     
-root=tk.Tk()
-root.geometry("600x400")                                          # Geometry of the Tkinter frame.
-word =tk.StringVar()
+        node = self.root
+        for char in word.lower():
+            if char not in node.children:
+                return False
+            node = node.children[char]
 
-def update(data):
-    listbox.delete(0,tk.END)
-    for item in data:
-        listbox.insert(tk.END,item)
-        
-        
-def fillout(event):                
-    name_entry.delete(0,tk.END)                                   # Add clicked list item to entry box
-    name_entry.insert(0,listbox.get(tk.ACTIVE))
-    
-    
-def check(e):
-    String= name_entry.get()                                      # grab what was typed
-    if String =="":
-        data=keys
-    else:
-        data=t1.printAutoSuggestions(String)
-        
-    update(data)
+        return node.is_end_of_word
 
-def submit():                                                    # Key To get the searched word and append it History and show a message
-    name=word.get()                                              # that the search was successful.                                             
-    file=open("BrowserHistory.txt","a")
-    file.write(name)
-    
-    tk.messagebox.showinfo("Autosearch",name + "  Searched Successfully")
-    
-def view():
-    History=[]
-    j=0
-    file2= open("BrowserHistory.txt","r")
-    
-    for word in file2:
-        History.append(word.lower())
-        
-    listBox2=tk.Listbox(root,listvariable=History,selectmode = tk.EXTENDED)              # To Display the Browser History in the listbox
-    listBox2.grid(row = 2,column = 4)
-    
-    for i in History:
-        listBox2.insert(j+1,History[j])
-        j+=1
-    listBox2.grid(row = 2,column = 4)
-    
+    def get_all_words_with_prefix(self, prefix: str, max_results: int = 10) -> list:
+        """Get all words that start with the given prefix"""
+        if not prefix:
+            return []
 
-name_label = tk.Label(root, text = 'Word list', font=('calibre',10, 'bold'))
-name_label.grid(row=0,column=0)
+        node = self.root
 
-name_entry = tk.Entry(root,textvariable = word, font=('calibre',10,'normal'))             # The entrybox for the user in which he types the word he
-name_entry.grid(row=0,column=1)                                                           # wants to search for
+        # Navigate to prefix
+        for char in prefix.lower():
+            if char not in node.children:
+                return []
+            node = node.children[char]
 
-vari= tk.Variable(value = keys)
-listbox = tk.Listbox(root,listvariable=vari,height = 6,selectmode = tk.EXTENDED)          # Listbox to display all words searched from Trie.
-listbox.grid(row = 2,column = 1)
+        # Collect words
+        results = []
+        self._collect_words(node, prefix.lower(), results, max_results)
+        return results
 
-sub_btn=tk.Button(root,text = 'Search', command = submit)                                 # Button when clicked show a pop up box that search
-sub_btn.grid(row=10,column=1)                                                             # was successful and append to history when the word is searched
+    def _collect_words(self, node: TrieNode, current_word: str, results: list, max_results: int):
+        """Helper function to collect words starting from a node"""
+        if len(results) >= max_results:
+            return
 
-bt=tk.Button(root,text="Browser History",command = view)                                  # Button to view the Browser history
-bt.grid(row=11,column=1)
+        if node.is_end_of_word:
+            results.append(current_word)
 
+        for char, child_node in node.children.items():
+            if len(results) < max_results:
+                self._collect_words(child_node, current_word + char, results, max_results)
 
-'''def items_selected(event):                                                                #To show a pop-up message.
-    selected_indices = listbox.curselection()
-    selected_langs = ",".join([listbox.get(i) for i in selected_indices])
-    msg = f'You selected: {selected_langs}'
-    showinfo(title='Information', message=msg)'''
+Node = TrieNode
 
+# Only load data if this file is run directly (not imported)
+if __name__ == "__main__":
+    # Test the implementation
+    trie = Trie()
+    test_words = ["avatar", "avengers", "action", "adventure", "amazing", "spider", "spiderman"]
+    trie.formTrie(test_words)
 
-listbox.bind('<<ListboxSelect>>',fillout)                                                 #To execute a function when the selected items change,
-                                                                                          # we bind that function to the <<ListboxSelect>> event
-name_entry.bind("<KeyRelease>",check)
-
-root.mainloop()
-
-
-'''In this project we have used Trie data structure.Using Trie, the key can be searched in O(M) time,where M is the maximum string length
-   Trie is basically known for storing some collection of strings and performing efficient search operation on them and also known as prefix Tree'''
+    print("Testing Trie implementation:")
+    print(f"Suggestions for 'av': {trie.printAutoSuggestions('av')}")
+    print(f"Suggestions for 'spi': {trie.printAutoSuggestions('spi')}")
+    print(f"Search 'avatar': {trie.search('avatar')}")
+    print(f"Search 'batman': {trie.search('batman')}")

@@ -1,0 +1,197 @@
+{
+    "application": {
+        "name": "CineFusion",
+        "version": "1.0.0",
+        "description": "A modern movie search and recommendation API with intelligent autocomplete",
+        "author": "mdaashir",
+        "license": "MIT"
+    },
+    "server": {
+        "default_host": "localhost",
+        "default_port": 8001,
+        "worker_count": 1,
+        "timeout_seconds": 30
+    },
+    "api": {
+        "prefix": "/api",
+        "version": "v1",
+        "title": "CineFusion API",
+        "openapi_url": "/openapi.json",
+        "docs_url": "/docs",
+        "redoc_url": "/redoc"
+    },
+    "search": {
+        "max_results": 100,
+        "default_limit": 10,
+        "min_query_length": 1,
+        "max_query_length": 100,
+        "timeout_ms": 5000
+    },
+    "suggestions": {
+        "max_suggestions": 20,
+        "default_limit": 8,
+        "min_query_length": 1,
+        "max_query_length": 50,
+        "trie_max_suggestions": 20
+    },
+    "cache": {
+        "default_ttl_seconds": 300,
+        "max_size": 1000,
+        "cleanup_interval_seconds": 60
+    },
+    "rate_limiting": {
+        "default_requests": 100,
+        "default_window_seconds": 60,
+        "production_requests": 50,
+        "production_window_seconds": 60
+    },
+    "security": {
+        "api_key_header": "X-API-Key",
+        "cors_max_age": 3600,
+        "trusted_hosts": [ "*" ]
+    },
+    "database": {
+        "csv_filename": "movie_metadata.csv",
+        "encoding": "utf-8",
+        "chunk_size": 1000
+    },
+    "logging": {
+        "levels": {
+            "default": "INFO",
+            "development": "DEBUG",
+            "production": "WARNING",
+            "console": "INFO"
+        },
+        "formats": {
+            "default": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            "json": "json",
+            "console": "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        },
+        "files": {
+            "max_size_mb": 10,
+            "backup_count": 5,
+            "encoding": "utf-8"
+        },
+        "directories": {
+            "logs_dir": "logs",
+            "create_if_missing": true
+        },
+        "loggers": {
+            "app": {
+                "name": "CineFusion.app",
+                "file": "cinefusion_app.log",
+                "level": "INFO",
+                "format": "json"
+            },
+            "api": {
+                "name": "CineFusion.api",
+                "file": "cinefusion_api.log",
+                "level": "INFO",
+                "format": "json"
+            },
+            "performance": {
+                "name": "CineFusion.performance",
+                "file": "cinefusion_performance.log",
+                "level": "INFO",
+                "format": "json"
+            },
+            "error": {
+                "name": "CineFusion.error",
+                "file": "cinefusion_errors.log",
+                "level": "WARNING",
+                "format": "json"
+            },
+            "security": {
+                "name": "CineFusion.security",
+                "file": "cinefusion_security.log",
+                "level": "INFO",
+                "format": "json"
+            },
+            "daily": {
+                "name": "CineFusion.daily",
+                "file": "cinefusion_daily.log",
+                "level": "INFO",
+                "format": "json"
+            }
+        },
+        "console": {
+            "enabled": true,
+            "level": "INFO",
+            "colored": true,
+            "format": "console"
+        },
+        "rotation": {
+            "enabled": true,
+            "when": "midnight",
+            "interval": 1,
+            "backup_count": 30,
+            "utc": false
+        }
+    },
+    "monitoring": {
+        "health_check_interval": 30,
+        "metrics_retention_hours": 24,
+        "alert_thresholds": {
+            "cpu_percent": 80,
+            "memory_percent": 80,
+            "disk_percent": 85,
+            "response_time_ms": 1000,
+            "error_rate_percent": 5.0
+        }
+    },
+    "fallback_data": {
+        "movies": [
+            {
+                "title": "The Shawshank Redemption",
+                "year": 1994,
+                "rating": 9.3,
+                "genre": "Drama",
+                "director": "Frank Darabont"
+            },
+            {
+                "title": "The Godfather",
+                "year": 1972,
+                "rating": 9.2,
+                "genre": "Crime|Drama",
+                "director": "Francis Ford Coppola"
+            },
+            {
+                "title": "The Dark Knight",
+                "year": 2008,
+                "rating": 9.0,
+                "genre": "Action|Crime|Drama",
+                "director": "Christopher Nolan"
+            },
+            {
+                "title": "Pulp Fiction",
+                "year": 1994,
+                "rating": 8.9,
+                "genre": "Crime|Drama",
+                "director": "Quentin Tarantino"
+            },
+            {
+                "title": "Forrest Gump",
+                "year": 1994,
+                "rating": 8.8,
+                "genre": "Drama|Romance",
+                "director": "Robert Zemeckis"
+            }
+        ]
+    },
+    "error_messages": {
+        "search_failed": "Search operation failed",
+        "suggestions_failed": "Suggestions retrieval failed",
+        "database_unavailable": "Movie database is currently unavailable",
+        "invalid_query": "Invalid search query provided",
+        "rate_limit_exceeded": "Rate limit exceeded. Please try again later.",
+        "internal_error": "Internal server error occurred",
+        "not_found": "Resource not found",
+        "validation_error": "Request validation failed"
+    },
+    "response_headers": {
+        "process_time": "X-Process-Time",
+        "cache_status": "X-Cache-Status",
+        "rate_limit_remaining": "X-RateLimit-Remaining",
+        "rate_limit_reset": "X-RateLimit-Reset"
+    }
+}
