@@ -1,39 +1,58 @@
 <!DOCTYPE html>
 <html lang="en">
+
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta http-equiv="refresh" content="5" />
-		<!-- Refresh the page every 5 seconds -->
-		<link rel="stylesheet" href="styles/style.css" />
 		<meta http-equiv="X-UA-Compatible" content="ie=edge" />
-		<title>login</title>
+		<title>CineFusion - Login</title>
+		<link rel="stylesheet" href="../css/style.css" />
+		<link rel="icon" type="image/png" href="../img/logo-color.png">
 	</head>
 
 	<body>
 		<div class="login">
 			<div class="heading">
+				<img src="../img/logo-color.png" alt="CineFusion Logo" class="logo">
 				<h1>CINE FUSION</h1>
+				<p>Welcome back! Please sign in to your account.</p>
 			</div>
+
 			<form autocomplete="on" id="login-form">
-				<div class="username">
-					<label for="username"></label>
-					<input type="text" placeholder="username" id="username" />
+				<div class="form-group">
+					<label for="username">Username</label>
+					<input type="text" placeholder="Enter your username" id="username" required />
 				</div>
 
-				<div class="password">
-					<label for="password"></label>
-					<input type="password" id="pass" placeholder="password" />
+				<div class="form-group">
+					<label for="password">Password</label>
+					<input type="password" id="password" placeholder="Enter your password" required />
 				</div>
-				<div class="signup">
-					<a href="signup.html">signup?</a>
+
+				<div class="form-options">
+					<label class="remember-me">
+						<input type="checkbox" id="remember">
+						<span>Remember me</span>
+					</label>
+					<a href="#" class="forgot-password">Forgot password?</a>
 				</div>
-				<div class="loginbutton">
-					<button>login</button>
+
+				<div class="form-group">
+					<button type="submit" class="login-button">Sign In</button>
+				</div>
+
+				<div class="signup-link">
+					<p>Don't have an account? <a href="signup.html">Sign up here</a></p>
 				</div>
 			</form>
 
-			<script src="script/password.js"></script>
+			<div class="loading" id="loading" style="display: none;">
+				<div class="spinner"></div>
+				<p>Signing you in...</p>
+			</div>
 		</div>
+
+		<script src="../js/password.js"></script>
 	</body>
+
 </html>

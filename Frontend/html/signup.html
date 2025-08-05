@@ -1,48 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
+
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<meta http-equiv="refresh" content="5" />
-		<!-- Refresh the page every 5 seconds -->
-		<link rel="stylesheet" href="styles/style.css" />
-		<title>Signup</title>
+		<title>CineFusion - Sign Up</title>
+		<link rel="stylesheet" href="../css/style.css" />
+		<link rel="icon" type="image/png" href="../img/logo-color.png">
 	</head>
+
 	<body>
 		<div class="login">
 			<div class="heading">
+				<img src="../img/logo-color.png" alt="CineFusion Logo" class="logo">
 				<h1>CINE FUSION</h1>
+				<p>Join CineFusion and discover amazing movies!</p>
 			</div>
+
 			<form autocomplete="on" id="signup-form">
-				<div class="mail">
-					<label for="mail"></label>
-					<input
-						type="email"
-						name="mail"
-						id="mail"
-						placeholder="emailaddress" />
-				</div>
-				<div class="name">
-					<label for="username"></label>
-					<input type="text" placeholder="username" id="username" />
+				<div class="form-group">
+					<label for="email">Email Address</label>
+					<input type="email" name="email" id="email" placeholder="Enter your email" required />
 				</div>
 
-				<div class="password">
-					<label for="password"></label>
-					<input type="password" id="password" placeholder="password" />
+				<div class="form-group">
+					<label for="username">Username</label>
+					<input type="text" placeholder="Choose a username" id="username" required />
 				</div>
-				<div class="password">
-					<label for="repass"></label>
-					<input
-						type="password"
-						id="reenteredpass"
-						placeholder="re-enter password" />
+
+				<div class="form-group">
+					<label for="password">Password</label>
+					<input type="password" id="password" placeholder="Create a password" required />
+					<div class="password-strength" id="passwordStrength"></div>
 				</div>
-				<div class="loginbutton">
-					<button type="submit">signup</button>
+
+				<div class="form-group">
+					<label for="confirmPassword">Confirm Password</label>
+					<input type="password" id="confirmPassword" placeholder="Confirm your password" required />
+				</div>
+
+				<div class="form-group">
+					<label class="checkbox-label">
+						<input type="checkbox" id="agreeTerms" required>
+						<span>I agree to the <a href="#" class="terms-link">Terms of Service</a> and <a href="#"
+								class="privacy-link">Privacy Policy</a></span>
+					</label>
+				</div>
+
+				<div class="form-group">
+					<button type="submit" class="login-button">Create Account</button>
+				</div>
+
+				<div class="signup-link">
+					<p>Already have an account? <a href="login.html">Sign in here</a></p>
 				</div>
 			</form>
-			<script src="script/verification.js"></script>
+
+			<div class="loading" id="loading" style="display: none;">
+				<div class="spinner"></div>
+				<p>Creating your account...</p>
+			</div>
 		</div>
+
+		<script src="../js/verification.js"></script>
 	</body>
+
 </html>
