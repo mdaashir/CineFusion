@@ -170,6 +170,10 @@ class CineFusionAPITester:
                     self.log_result(f"Suggestions: {description}", True, f"Query: '{query}' -> {total_suggestions} suggestions")
                 else:
                     self.log_result(f"Suggestions: {description}", False, f"Status: {response.status_code}")
+            except requests.exceptions.Timeout:
+                self.log_result(f"Suggestions: {description}", False, f"Timeout after 5 seconds")
+            except requests.exceptions.RequestException as e:
+                self.log_result(f"Suggestions: {description}", False, f"Request error: {e}")
             except Exception as e:
                 self.log_result(f"Suggestions: {description}", False, f"Error: {e}")
 
@@ -438,12 +442,24 @@ def main():
 
         return_code = 0 if success else 1
 
+    except KeyboardInterrupt:
+        print("\nTests interrupted by user")
+        return_code = 1
+    except Exception as e:
+        print(f"Test execution failed: {e}")
+        return_code = 1
     finally:
         # Clean up server if we started it
         if server_process:
             print("Stopping test server...")
-            server_process.terminate()
-            server_process.wait()
+            try:
+                server_process.terminate()
+                server_process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                print("Force killing test server...")
+                server_process.kill()
+            except Exception as e:
+                print(f"Error stopping server: {e}")
 
     sys.exit(return_code)
 

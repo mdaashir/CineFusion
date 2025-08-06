@@ -30,22 +30,29 @@ from monitoring import performance_monitor, alert_manager
 
 # Import custom logging system
 from logger import (
-    setup_logging, get_request_logger, get_performance_logger,
-    get_error_logger, get_security_logger, log_request, log_response,
-    log_error, log_performance_metric, log_security_event
+    setup_logging,
+    get_request_logger,
+    get_performance_logger,
+    get_error_logger,
+    get_security_logger,
+    log_request,
+    log_response,
+    log_error,
+    log_performance_metric,
+    log_security_event,
 )
 
 # Initialize comprehensive logging with environment-aware configuration
 environment = "production" if not config.DEBUG else "development"
 loggers = setup_logging(environment=environment)
-logger = loggers['app']
+logger = loggers["app"]
 api_logger = get_request_logger()
 perf_logger = get_performance_logger()
 error_logger = get_error_logger()
 security_logger = get_security_logger()
 
 # Add the process directory to the path
-process_dir = Path(__file__).parent / 'process'
+process_dir = Path(__file__).parent / "process"
 sys.path.append(str(process_dir))
 
 # Global variables for data structures
@@ -53,6 +60,7 @@ avl_tree = None
 trie = None
 movies_df = None
 startup_time = time.time()
+
 
 # Enhanced cache implementation with TTL and size limits
 class AdvancedCache:
@@ -101,7 +109,8 @@ class AdvancedCache:
         """Remove expired cache entries"""
         now = time.time()
         expired_keys = [
-            key for key, (_, timestamp) in self.cache.items()
+            key
+            for key, (_, timestamp) in self.cache.items()
             if now - timestamp >= self.ttl
         ]
         for key in expired_keys:
@@ -141,11 +150,17 @@ class AdvancedCache:
             "misses": self.misses,
             "hit_rate": round(hit_rate, 2),
             "evictions": self.evictions,
-            "ttl_seconds": self.ttl
+            "ttl_seconds": self.ttl,
         }
 
+
 # Initialize cache
-cache = AdvancedCache(config.CACHE_MAX_SIZE, config.CACHE_TTL_SECONDS) if config.ENABLE_CACHING else None
+cache = (
+    AdvancedCache(config.CACHE_MAX_SIZE, config.CACHE_TTL_SECONDS)
+    if config.ENABLE_CACHING
+    else None
+)
+
 
 # Rate limiting with sliding window
 class SlidingWindowRateLimiter:
@@ -172,7 +187,8 @@ class SlidingWindowRateLimiter:
 
         # Remove old requests outside the window
         self.clients[client_ip] = [
-            req_time for req_time in self.clients[client_ip]
+            req_time
+            for req_time in self.clients[client_ip]
             if now - req_time < self.window
         ]
 
@@ -186,7 +202,7 @@ class SlidingWindowRateLimiter:
                 "allowed": False,
                 "remaining": 0,
                 "reset": reset_time,
-                "limit": self.requests
+                "limit": self.requests,
             }
 
         # Add current request
@@ -197,7 +213,7 @@ class SlidingWindowRateLimiter:
             "allowed": True,
             "remaining": remaining - 1,
             "reset": reset_time,
-            "limit": self.requests
+            "limit": self.requests,
         }
 
     def _cleanup_old_entries(self) -> None:
@@ -216,30 +232,43 @@ class SlidingWindowRateLimiter:
         for client_ip in clients_to_remove:
             del self.clients[client_ip]
 
-rate_limiter = SlidingWindowRateLimiter(config.RATE_LIMIT_REQUESTS, config.RATE_LIMIT_WINDOW)
+
+rate_limiter = SlidingWindowRateLimiter(
+    config.RATE_LIMIT_REQUESTS, config.RATE_LIMIT_WINDOW
+)
+
 
 # Enhanced Pydantic Models with comprehensive validation
 class MovieModel(BaseModel):
     """Enhanced movie model with comprehensive validation"""
+
     title: str = Field(..., min_length=1, max_length=500, description="Movie title")
     year: Optional[int] = Field(None, ge=1880, le=2030, description="Release year")
     rating: Optional[float] = Field(None, ge=0.0, le=10.0, description="IMDb rating")
     genre: Optional[str] = Field(None, max_length=200, description="Movie genre")
     director: Optional[str] = Field(None, max_length=200, description="Director name")
-    duration: Optional[int] = Field(None, ge=1, le=1000, description="Duration in minutes")
+    duration: Optional[int] = Field(
+        None, ge=1, le=1000, description="Duration in minutes"
+    )
     budget: Optional[float] = Field(None, ge=0, description="Movie budget")
     actors: Optional[str] = Field(None, max_length=1000, description="Main actors")
     plot: Optional[str] = Field(None, max_length=2000, description="Movie plot")
-    country: Optional[str] = Field(None, max_length=100, description="Country of origin")
-    language: Optional[str] = Field(None, max_length=100, description="Primary language")
-    awards: Optional[str] = Field(None, max_length=500, description="Awards and nominations")
+    country: Optional[str] = Field(
+        None, max_length=100, description="Country of origin"
+    )
+    language: Optional[str] = Field(
+        None, max_length=100, description="Primary language"
+    )
+    awards: Optional[str] = Field(
+        None, max_length=500, description="Awards and nominations"
+    )
 
-    @field_validator('title')
+    @field_validator("title")
     @classmethod
     def validate_title(cls, v):
         return v.strip() if v else ""
 
-    @field_validator('genre')
+    @field_validator("genre")
     @classmethod
     def validate_genre(cls, v):
         return v.strip() if v else None
@@ -254,30 +283,44 @@ class MovieModel(BaseModel):
                 "director": "Christopher Nolan",
                 "duration": 152,
                 "budget": 185000000.0,
-                "actors": "Christian Bale, Heath Ledger, Aaron Eckhart"
+                "actors": "Christian Bale, Heath Ledger, Aaron Eckhart",
             }
         }
 
+
 class SearchResponse(BaseModel):
     """Enhanced search response model"""
+
     movies: List[MovieModel]
     total_count: int = Field(..., description="Total number of movies found")
     query: str = Field(..., description="Original search query")
     filters: Dict[str, Any] = Field(default_factory=dict, description="Applied filters")
-    execution_time_ms: float = Field(..., description="Search execution time in milliseconds")
-    cached: bool = Field(default=False, description="Whether result was served from cache")
-    pagination: Dict[str, Any] = Field(default_factory=dict, description="Pagination information")
+    execution_time_ms: float = Field(
+        ..., description="Search execution time in milliseconds"
+    )
+    cached: bool = Field(
+        default=False, description="Whether result was served from cache"
+    )
+    pagination: Dict[str, Any] = Field(
+        default_factory=dict, description="Pagination information"
+    )
+
 
 class SuggestionsResponse(BaseModel):
     """Enhanced suggestions response model"""
+
     suggestions: List[str]
     query: str = Field(..., description="Original query")
     execution_time_ms: float = Field(..., description="Execution time in milliseconds")
-    cached: bool = Field(default=False, description="Whether result was served from cache")
+    cached: bool = Field(
+        default=False, description="Whether result was served from cache"
+    )
     total_available: int = Field(default=0, description="Total suggestions available")
+
 
 class HealthResponse(BaseModel):
     """Comprehensive health check response model"""
+
     status: str = Field(..., description="Service status")
     version: str = Field(..., description="API version")
     timestamp: str = Field(..., description="Current timestamp")
@@ -285,23 +328,37 @@ class HealthResponse(BaseModel):
     database_status: str = Field(..., description="Database connection status")
     movies_loaded: int = Field(..., description="Number of movies in database")
     cache_stats: Optional[Dict[str, Any]] = Field(None, description="Cache statistics")
-    performance_metrics: Optional[Dict[str, Any]] = Field(None, description="Performance metrics")
-    system_info: Optional[Dict[str, Any]] = Field(None, description="System information")
+    performance_metrics: Optional[Dict[str, Any]] = Field(
+        None, description="Performance metrics"
+    )
+    system_info: Optional[Dict[str, Any]] = Field(
+        None, description="System information"
+    )
+
 
 class ErrorResponse(BaseModel):
     """Standardized error response model"""
+
     detail: str = Field(..., description="Error description")
     error_code: Optional[str] = Field(None, description="Error code")
-    error_id: str = Field(default_factory=lambda: str(uuid.uuid4()), description="Unique error ID")
-    timestamp: str = Field(default_factory=lambda: datetime.now().isoformat(), description="Error timestamp")
+    error_id: str = Field(
+        default_factory=lambda: str(uuid.uuid4()), description="Unique error ID"
+    )
+    timestamp: str = Field(
+        default_factory=lambda: datetime.now().isoformat(),
+        description="Error timestamp",
+    )
     path: Optional[str] = Field(None, description="Request path where error occurred")
+
 
 class StatsResponse(BaseModel):
     """Database and system statistics response"""
+
     database: Dict[str, Any]
     performance: Dict[str, Any]
     cache: Optional[Dict[str, Any]] = None
     system: Dict[str, Any]
+
 
 # Async context manager for application lifecycle
 @asynccontextmanager
@@ -328,7 +385,7 @@ async def lifespan(app: FastAPI):
         # Initialize AVL Tree
         logger.info("Initializing AVL Tree...")
         avl_tree = AVLTree()
-        for title in movies_df['movie_title'].dropna():
+        for title in movies_df["movie_title"].dropna():
             clean_title = title.strip()
             if clean_title:
                 avl_tree.insert(clean_title)
@@ -337,7 +394,11 @@ async def lifespan(app: FastAPI):
         # Initialize Trie
         logger.info("Initializing Autocomplete Trie...")
         trie = Trie()
-        movie_titles = [title.strip() for title in movies_df['movie_title'].dropna() if title.strip()]
+        movie_titles = [
+            title.strip()
+            for title in movies_df["movie_title"].dropna()
+            if title.strip()
+        ]
         trie.formTrie(movie_titles)
         logger.info("Trie initialized successfully")
 
@@ -361,6 +422,7 @@ async def lifespan(app: FastAPI):
     # Cleanup
     logger.info("Shutting down CineFusion backend")
 
+
 # Background tasks
 async def periodic_cache_cleanup():
     """Periodic cache cleanup task"""
@@ -369,6 +431,7 @@ async def periodic_cache_cleanup():
         if cache:
             cache._cleanup_expired()
             logger.debug(f"Cache cleanup completed. Current size: {len(cache.cache)}")
+
 
 async def periodic_health_check():
     """Periodic health monitoring task"""
@@ -381,6 +444,7 @@ async def periodic_health_check():
                 logger.warning(f"System alerts detected: {len(alerts)} issues")
         except Exception as e:
             logger.error(f"Health check failed: {e}")
+
 
 # Create FastAPI app with enhanced configuration
 app = FastAPI(
@@ -395,7 +459,7 @@ app = FastAPI(
         422: {"model": ErrorResponse},
         429: {"model": ErrorResponse},
         500: {"model": ErrorResponse},
-    }
+    },
 )
 
 # Add security middleware
@@ -411,6 +475,7 @@ app.add_middleware(
     allow_headers=config.CORS_ALLOW_HEADERS,
     max_age=config.CORS_MAX_AGE,
 )
+
 
 # Enhanced middleware for monitoring, rate limiting, and comprehensive logging
 @app.middleware("http")
@@ -428,7 +493,7 @@ async def comprehensive_middleware(request: Request, call_next):
         endpoint=str(request.url.path),
         user_ip=client_ip,
         user_agent=user_agent,
-        query_params=dict(request.query_params) if request.query_params else None
+        query_params=dict(request.query_params) if request.query_params else None,
     )
 
     # Rate limiting with security logging
@@ -439,7 +504,7 @@ async def comprehensive_middleware(request: Request, call_next):
             severity="warning",
             user_ip=client_ip,
             user_agent=user_agent,
-            details={"endpoint": str(request.url.path), "limit": rate_info}
+            details={"endpoint": str(request.url.path), "limit": rate_info},
         )
 
         response = JSONResponse(
@@ -447,11 +512,15 @@ async def comprehensive_middleware(request: Request, call_next):
             content=ErrorResponse(
                 detail=config.ERROR_MESSAGES["rate_limit_exceeded"],
                 error_code="RATE_LIMIT_EXCEEDED",
-                path=str(request.url.path)
-            ).dict()
+                path=str(request.url.path),
+            ).dict(),
         )
-        response.headers[config.RESPONSE_HEADERS["rate_limit_remaining"]] = str(rate_info["remaining"])
-        response.headers[config.RESPONSE_HEADERS["rate_limit_reset"]] = str(rate_info["reset"])
+        response.headers[config.RESPONSE_HEADERS["rate_limit_remaining"]] = str(
+            rate_info["remaining"]
+        )
+        response.headers[config.RESPONSE_HEADERS["rate_limit_reset"]] = str(
+            rate_info["reset"]
+        )
 
         # Log response
         process_time = (time.time() - start_time) * 1000
@@ -472,8 +541,8 @@ async def comprehensive_middleware(request: Request, call_next):
                 details={
                     "status_code": response.status_code,
                     "endpoint": str(request.url.path),
-                    "method": request.method
-                }
+                    "method": request.method,
+                },
             )
 
     except Exception as e:
@@ -488,8 +557,10 @@ async def comprehensive_middleware(request: Request, call_next):
             additional_context={
                 "method": request.method,
                 "user_agent": user_agent,
-                "query_params": dict(request.query_params) if request.query_params else None
-            }
+                "query_params": (
+                    dict(request.query_params) if request.query_params else None
+                ),
+            },
         )
 
         response = JSONResponse(
@@ -498,8 +569,8 @@ async def comprehensive_middleware(request: Request, call_next):
                 detail=config.ERROR_MESSAGES["internal_error"],
                 error_code="INTERNAL_ERROR",
                 error_id=request_id,
-                path=str(request.url.path)
-            ).dict()
+                path=str(request.url.path),
+            ).dict(),
         )
 
     # Add timing and monitoring
@@ -515,18 +586,20 @@ async def comprehensive_middleware(request: Request, call_next):
         additional_data={
             "method": request.method,
             "status_code": response.status_code,
-            "error_occurred": error_occurred
-        }
+            "error_occurred": error_occurred,
+        },
     )
 
     # Add response headers
     response.headers[config.RESPONSE_HEADERS["process_time"]] = str(process_time / 1000)
-    response.headers[config.RESPONSE_HEADERS["rate_limit_remaining"]] = str(rate_info["remaining"])
+    response.headers[config.RESPONSE_HEADERS["rate_limit_remaining"]] = str(
+        rate_info["remaining"]
+    )
     response.headers["X-Request-ID"] = request_id
 
     # Log response
     response_size = None
-    if hasattr(response, 'body') and response.body:
+    if hasattr(response, "body") and response.body:
         response_size = len(response.body)
 
     log_response(
@@ -534,10 +607,11 @@ async def comprehensive_middleware(request: Request, call_next):
         endpoint=str(request.url.path),
         status_code=response.status_code,
         response_time=process_time,
-        response_size=response_size
+        response_size=response_size,
     )
 
     return response
+
 
 # Error handlers with enhanced logging
 @app.exception_handler(HTTPException)
@@ -553,8 +627,8 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         additional_context={
             "status_code": exc.status_code,
             "method": request.method,
-            "user_agent": request.headers.get("user-agent", "unknown")
-        }
+            "user_agent": request.headers.get("user-agent", "unknown"),
+        },
     )
 
     return JSONResponse(
@@ -562,9 +636,10 @@ async def http_exception_handler(request: Request, exc: HTTPException):
         content=ErrorResponse(
             detail=exc.detail,
             error_code=f"HTTP_{exc.status_code}",
-            path=str(request.url.path)
-        ).dict()
+            path=str(request.url.path),
+        ).dict(),
     )
+
 
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
@@ -581,8 +656,10 @@ async def global_exception_handler(request: Request, exc: Exception):
         additional_context={
             "method": request.method,
             "user_agent": request.headers.get("user-agent", "unknown"),
-            "query_params": dict(request.query_params) if request.query_params else None
-        }
+            "query_params": (
+                dict(request.query_params) if request.query_params else None
+            ),
+        },
     )
 
     # Log security event for unexpected errors
@@ -594,8 +671,8 @@ async def global_exception_handler(request: Request, exc: Exception):
             "error_type": type(exc).__name__,
             "error_message": str(exc),
             "endpoint": str(request.url.path),
-            "method": request.method
-        }
+            "method": request.method,
+        },
     )
 
     return JSONResponse(
@@ -604,8 +681,8 @@ async def global_exception_handler(request: Request, exc: Exception):
             detail=config.ERROR_MESSAGES["internal_error"],
             error_code="INTERNAL_ERROR",
             error_id=request_id,
-            path=str(request.url.path)
-        ).dict()
+            path=str(request.url.path),
+        ).dict(),
     )
     error_id = str(uuid.uuid4())
     logger.error(f"Global exception {error_id}: {exc}", exc_info=True)
@@ -616,33 +693,71 @@ async def global_exception_handler(request: Request, exc: Exception):
             detail=config.ERROR_MESSAGES["internal_error"],
             error_code="INTERNAL_ERROR",
             error_id=error_id,
-            path=str(request.url.path)
-        ).dict()
+            path=str(request.url.path),
+        ).dict(),
     )
+
 
 # Helper functions
 def movie_to_dict(row) -> Dict[str, Any]:
     """Convert DataFrame row to MovieModel dict with comprehensive mapping"""
     return {
-        "title": str(row.get('movie_title', '')).strip(),
-        "year": int(row.get('title_year', 0)) if pd.notna(row.get('title_year')) else None,
-        "rating": float(row.get('imdb_score', 0)) if pd.notna(row.get('imdb_score')) else None,
-        "genre": str(row.get('genres', '')).strip() if pd.notna(row.get('genres')) else None,
-        "director": str(row.get('director_name', '')).strip() if pd.notna(row.get('director_name')) else None,
-        "duration": int(row.get('duration', 0)) if pd.notna(row.get('duration')) else None,
-        "budget": float(row.get('budget', 0)) if pd.notna(row.get('budget')) else None,
-        "actors": str(row.get('actor_1_name', '')).strip() if pd.notna(row.get('actor_1_name')) else None,
-        "plot": str(row.get('plot_keywords', '')).strip() if pd.notna(row.get('plot_keywords')) else None,
-        "country": str(row.get('country', '')).strip() if pd.notna(row.get('country')) else None,
-        "language": str(row.get('language', '')).strip() if pd.notna(row.get('language')) else None,
-        "awards": None  # Not in current dataset
+        "title": str(row.get("movie_title", "")).strip(),
+        "year": (
+            int(row.get("title_year", 0)) if pd.notna(row.get("title_year")) else None
+        ),
+        "rating": (
+            float(row.get("imdb_score", 0)) if pd.notna(row.get("imdb_score")) else None
+        ),
+        "genre": (
+            str(row.get("genres", "")).strip() if pd.notna(row.get("genres")) else None
+        ),
+        "director": (
+            str(row.get("director_name", "")).strip()
+            if pd.notna(row.get("director_name"))
+            else None
+        ),
+        "duration": (
+            int(row.get("duration", 0)) if pd.notna(row.get("duration")) else None
+        ),
+        "budget": float(row.get("budget", 0)) if pd.notna(row.get("budget")) else None,
+        "actors": (
+            str(row.get("actor_1_name", "")).strip()
+            if pd.notna(row.get("actor_1_name"))
+            else None
+        ),
+        "plot": (
+            str(row.get("plot_keywords", "")).strip()
+            if pd.notna(row.get("plot_keywords"))
+            else None
+        ),
+        "country": (
+            str(row.get("country", "")).strip()
+            if pd.notna(row.get("country"))
+            else None
+        ),
+        "language": (
+            str(row.get("language", "")).strip()
+            if pd.notna(row.get("language"))
+            else None
+        ),
+        "awards": None,  # Not in current dataset
     }
 
-def search_movies_in_df(query: str, limit: int = 10, offset: int = 0,
-                        genre: Optional[str] = None, year: Optional[int] = None,
-                        min_rating: Optional[float] = None, max_rating: Optional[float] = None,
-                        director: Optional[str] = None, actor: Optional[str] = None,
-                        sort_by: str = "rating", sort_order: str = "desc") -> tuple[List[MovieModel], int, Dict[str, Any]]:
+
+def search_movies_in_df(
+    query: str,
+    limit: int = 10,
+    offset: int = 0,
+    genre: Optional[str] = None,
+    year: Optional[int] = None,
+    min_rating: Optional[float] = None,
+    max_rating: Optional[float] = None,
+    director: Optional[str] = None,
+    actor: Optional[str] = None,
+    sort_by: str = "rating",
+    sort_order: str = "desc",
+) -> tuple[List[MovieModel], int, Dict[str, Any]]:
     """Enhanced movie search with comprehensive filtering and sorting"""
     if movies_df is None:
         return [], 0, {}
@@ -654,38 +769,66 @@ def search_movies_in_df(query: str, limit: int = 10, offset: int = 0,
     # Apply search query
     if query:
         query_lower = query.lower()
-        title_match = filtered_df['movie_title'].str.lower().str.contains(query_lower, na=False, regex=False)
-        director_match = filtered_df['director_name'].str.lower().str.contains(query_lower, na=False, regex=False)
-        actor_match = filtered_df['actor_1_name'].str.lower().str.contains(query_lower, na=False, regex=False)
-        genre_match = filtered_df['genres'].str.lower().str.contains(query_lower, na=False, regex=False)
+        title_match = (
+            filtered_df["movie_title"]
+            .str.lower()
+            .str.contains(query_lower, na=False, regex=False)
+        )
+        director_match = (
+            filtered_df["director_name"]
+            .str.lower()
+            .str.contains(query_lower, na=False, regex=False)
+        )
+        actor_match = (
+            filtered_df["actor_1_name"]
+            .str.lower()
+            .str.contains(query_lower, na=False, regex=False)
+        )
+        genre_match = (
+            filtered_df["genres"]
+            .str.lower()
+            .str.contains(query_lower, na=False, regex=False)
+        )
 
-        filtered_df = filtered_df[title_match | director_match | actor_match | genre_match]
-        filters_applied['query'] = query
+        filtered_df = filtered_df[
+            title_match | director_match | actor_match | genre_match
+        ]
+        filters_applied["query"] = query
 
     # Apply filters
     if genre:
-        filtered_df = filtered_df[filtered_df['genres'].str.contains(genre, case=False, na=False, regex=False)]
-        filters_applied['genre'] = genre
+        filtered_df = filtered_df[
+            filtered_df["genres"].str.contains(genre, case=False, na=False, regex=False)
+        ]
+        filters_applied["genre"] = genre
 
     if year:
-        filtered_df = filtered_df[filtered_df['title_year'] == year]
-        filters_applied['year'] = year
+        filtered_df = filtered_df[filtered_df["title_year"] == year]
+        filters_applied["year"] = year
 
     if min_rating:
-        filtered_df = filtered_df[filtered_df['imdb_score'] >= min_rating]
-        filters_applied['min_rating'] = min_rating
+        filtered_df = filtered_df[filtered_df["imdb_score"] >= min_rating]
+        filters_applied["min_rating"] = min_rating
 
     if max_rating:
-        filtered_df = filtered_df[filtered_df['imdb_score'] <= max_rating]
-        filters_applied['max_rating'] = max_rating
+        filtered_df = filtered_df[filtered_df["imdb_score"] <= max_rating]
+        filters_applied["max_rating"] = max_rating
 
     if director:
-        filtered_df = filtered_df[filtered_df['director_name'].str.contains(director, case=False, na=False, regex=False)]
-        filters_applied['director'] = director
+        filtered_df = filtered_df[
+            filtered_df["director_name"].str.contains(
+                director, case=False, na=False, regex=False
+            )
+        ]
+        filters_applied["director"] = director
 
     if actor:
-        filtered_df = filtered_df[filtered_df['actor_1_name'].str.contains(actor, case=False, na=False, regex=False)]
-        filters_applied['actor'] = actor
+        filtered_df = filtered_df[
+            filtered_df["actor_1_name"].str.contains(
+                actor, case=False, na=False, regex=False
+            )
+        ]
+        filters_applied["actor"] = actor
 
     # Sort results
     sort_column_mapping = {
@@ -693,21 +836,23 @@ def search_movies_in_df(query: str, limit: int = 10, offset: int = 0,
         "year": "title_year",
         "title": "movie_title",
         "duration": "duration",
-        "budget": "budget"
+        "budget": "budget",
     }
 
     if sort_by in sort_column_mapping:
         sort_column = sort_column_mapping[sort_by]
         ascending = sort_order.lower() == "asc"
-        filtered_df = filtered_df.sort_values(sort_column, ascending=ascending, na_position='last')
-        filters_applied['sort_by'] = sort_by
-        filters_applied['sort_order'] = sort_order
+        filtered_df = filtered_df.sort_values(
+            sort_column, ascending=ascending, na_position="last"
+        )
+        filters_applied["sort_by"] = sort_by
+        filters_applied["sort_order"] = sort_order
 
     # Get total count before pagination
     total_count = len(filtered_df)
 
     # Apply pagination
-    paginated_df = filtered_df.iloc[offset:offset + limit]
+    paginated_df = filtered_df.iloc[offset : offset + limit]
 
     # Convert to MovieModel list
     movies = []
@@ -721,10 +866,12 @@ def search_movies_in_df(query: str, limit: int = 10, offset: int = 0,
 
     return movies, total_count, filters_applied
 
+
 def get_fallback_movies(limit: int = 5) -> List[MovieModel]:
     """Get fallback movies from configuration"""
     fallback_data = config.FALLBACK_MOVIES[:limit]
     return [MovieModel(**movie) for movie in fallback_data]
+
 
 # API Endpoints
 @app.get("/", response_model=HealthResponse)
@@ -736,10 +883,15 @@ async def root():
 
     try:
         import psutil
+
         system_info = {
             "cpu_percent": psutil.cpu_percent(interval=0.1),
             "memory_percent": psutil.virtual_memory().percent,
-            "disk_percent": psutil.disk_usage('/').percent if os.name != 'nt' else psutil.disk_usage('C:\\').percent
+            "disk_percent": (
+                psutil.disk_usage("/").percent
+                if os.name != "nt"
+                else psutil.disk_usage("C:\\").percent
+            ),
         }
     except ImportError:
         system_info = {"status": "psutil not available"}
@@ -753,27 +905,47 @@ async def root():
         movies_loaded=len(movies_df) if movies_df is not None else 0,
         cache_stats=cache_stats,
         performance_metrics=performance_stats,
-        system_info=system_info
+        system_info=system_info,
     )
+
 
 @app.get(f"{config.API_PREFIX}/health", response_model=HealthResponse)
 async def health_check():
     """Detailed health check endpoint with full system status"""
     return await root()
 
+
 @app.get(f"{config.API_PREFIX}/search", response_model=SearchResponse)
 async def search_movies(
-    q: str = Query(..., min_length=config.MIN_QUERY_LENGTH, max_length=config.MAX_QUERY_LENGTH, description="Search query"),
-    limit: int = Query(config.DEFAULT_SEARCH_LIMIT, ge=1, le=config.MAX_SEARCH_RESULTS, description="Maximum number of results"),
+    q: str = Query(
+        ...,
+        min_length=config.MIN_QUERY_LENGTH,
+        max_length=config.MAX_QUERY_LENGTH,
+        description="Search query",
+    ),
+    limit: int = Query(
+        config.DEFAULT_SEARCH_LIMIT,
+        ge=1,
+        le=config.MAX_SEARCH_RESULTS,
+        description="Maximum number of results",
+    ),
     offset: int = Query(0, ge=0, description="Number of results to skip"),
     genre: Optional[str] = Query(None, description="Filter by genre"),
     year: Optional[int] = Query(None, ge=1880, le=2030, description="Filter by year"),
-    min_rating: Optional[float] = Query(None, ge=0, le=10, description="Minimum IMDB rating"),
-    max_rating: Optional[float] = Query(None, ge=0, le=10, description="Maximum IMDB rating"),
+    min_rating: Optional[float] = Query(
+        None, ge=0, le=10, description="Minimum IMDB rating"
+    ),
+    max_rating: Optional[float] = Query(
+        None, ge=0, le=10, description="Maximum IMDB rating"
+    ),
     director: Optional[str] = Query(None, description="Filter by director"),
     actor: Optional[str] = Query(None, description="Filter by actor"),
-    sort_by: str = Query("rating", pattern="^(rating|year|title|duration|budget)$", description="Sort by field"),
-    sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Sort order")
+    sort_by: str = Query(
+        "rating",
+        pattern="^(rating|year|title|duration|budget)$",
+        description="Sort by field",
+    ),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Sort order"),
 ):
     """Enhanced search for movies with comprehensive filtering and sorting"""
     start_time = time.time()
@@ -792,11 +964,27 @@ async def search_movies(
 
     try:
         # Validate rating range
-        if min_rating is not None and max_rating is not None and min_rating > max_rating:
-            raise HTTPException(status_code=400, detail="min_rating cannot be greater than max_rating")
+        if (
+            min_rating is not None
+            and max_rating is not None
+            and min_rating > max_rating
+        ):
+            raise HTTPException(
+                status_code=400, detail="min_rating cannot be greater than max_rating"
+            )
 
         movies, total_count, filters_applied = search_movies_in_df(
-            q, limit, offset, genre, year, min_rating, max_rating, director, actor, sort_by, sort_order
+            q,
+            limit,
+            offset,
+            genre,
+            year,
+            min_rating,
+            max_rating,
+            director,
+            actor,
+            sort_by,
+            sort_order,
         )
 
         execution_time = (time.time() - start_time) * 1000
@@ -807,7 +995,7 @@ async def search_movies(
             "offset": offset,
             "total": total_count,
             "has_next": offset + limit < total_count,
-            "has_prev": offset > 0
+            "has_prev": offset > 0,
         }
 
         result = {
@@ -817,7 +1005,7 @@ async def search_movies(
             "filters": filters_applied,
             "execution_time_ms": execution_time,
             "cached": False,
-            "pagination": pagination
+            "pagination": pagination,
         }
 
         # Cache the result
@@ -830,12 +1018,25 @@ async def search_movies(
         raise
     except Exception as e:
         logger.error(f"Search error: {e}")
-        raise HTTPException(status_code=500, detail=config.ERROR_MESSAGES["search_failed"])
+        raise HTTPException(
+            status_code=500, detail=config.ERROR_MESSAGES["search_failed"]
+        )
+
 
 @app.get(f"{config.API_PREFIX}/suggestions", response_model=SuggestionsResponse)
 async def get_suggestions(
-    q: str = Query(..., min_length=config.MIN_SUGGESTIONS_QUERY_LENGTH, max_length=config.MAX_SUGGESTIONS_QUERY_LENGTH, description="Query for suggestions"),
-    limit: int = Query(config.DEFAULT_SUGGESTIONS_LIMIT, ge=1, le=config.MAX_SUGGESTIONS, description="Maximum number of suggestions")
+    q: str = Query(
+        ...,
+        min_length=config.MIN_SUGGESTIONS_QUERY_LENGTH,
+        max_length=config.MAX_SUGGESTIONS_QUERY_LENGTH,
+        description="Query for suggestions",
+    ),
+    limit: int = Query(
+        config.DEFAULT_SUGGESTIONS_LIMIT,
+        ge=1,
+        le=config.MAX_SUGGESTIONS,
+        description="Maximum number of suggestions",
+    ),
 ):
     """Get autocomplete suggestions for movie search with enhanced features"""
     start_time = time.time()
@@ -868,9 +1069,15 @@ async def get_suggestions(
             # Fallback: search in DataFrame
             if movies_df is not None:
                 query_lower = q.lower()
-                matching_titles = movies_df[
-                    movies_df['movie_title'].str.lower().str.startswith(query_lower, na=False)
-                ]['movie_title'].dropna().unique()
+                matching_titles = (
+                    movies_df[
+                        movies_df["movie_title"]
+                        .str.lower()
+                        .str.startswith(query_lower, na=False)
+                    ]["movie_title"]
+                    .dropna()
+                    .unique()
+                )
                 suggestions = list(matching_titles)[:limit]
                 total_available = len(matching_titles)
 
@@ -881,7 +1088,7 @@ async def get_suggestions(
             "query": q,
             "execution_time_ms": execution_time,
             "cached": False,
-            "total_available": total_available
+            "total_available": total_available,
         }
 
         # Cache the result
@@ -892,14 +1099,21 @@ async def get_suggestions(
 
     except Exception as e:
         logger.error(f"Suggestions error: {e}")
-        raise HTTPException(status_code=500, detail=config.ERROR_MESSAGES["suggestions_failed"])
+        raise HTTPException(
+            status_code=500, detail=config.ERROR_MESSAGES["suggestions_failed"]
+        )
+
 
 @app.get(f"{config.API_PREFIX}/movies", response_model=List[MovieModel])
 async def get_movies(
     limit: int = Query(20, ge=1, le=100, description="Number of movies to return"),
     offset: int = Query(0, ge=0, description="Number of movies to skip"),
-    sort_by: str = Query("rating", pattern="^(rating|year|title|duration|budget)$", description="Sort by field"),
-    sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Sort order")
+    sort_by: str = Query(
+        "rating",
+        pattern="^(rating|year|title|duration|budget)$",
+        description="Sort by field",
+    ),
+    sort_order: str = Query("desc", pattern="^(asc|desc)$", description="Sort order"),
 ):
     """Get paginated list of all movies with sorting"""
     try:
@@ -912,17 +1126,19 @@ async def get_movies(
             "year": "title_year",
             "title": "movie_title",
             "duration": "duration",
-            "budget": "budget"
+            "budget": "budget",
         }
 
         sorted_df = movies_df.copy()
         if sort_by in sort_column_mapping:
             sort_column = sort_column_mapping[sort_by]
             ascending = sort_order.lower() == "asc"
-            sorted_df = sorted_df.sort_values(sort_column, ascending=ascending, na_position='last')
+            sorted_df = sorted_df.sort_values(
+                sort_column, ascending=ascending, na_position="last"
+            )
 
         # Get paginated movies
-        paginated_df = sorted_df.iloc[offset:offset + limit]
+        paginated_df = sorted_df.iloc[offset : offset + limit]
 
         movies = []
         for _, row in paginated_df.iterrows():
@@ -939,12 +1155,15 @@ async def get_movies(
         logger.error(f"Get movies error: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve movies")
 
+
 @app.get(f"{config.API_PREFIX}/movies/{{movie_id}}", response_model=MovieModel)
 async def get_movie_by_id(movie_id: int):
     """Get specific movie by ID/index"""
     try:
         if movies_df is None or movie_id >= len(movies_df) or movie_id < 0:
-            raise HTTPException(status_code=404, detail=config.ERROR_MESSAGES["not_found"])
+            raise HTTPException(
+                status_code=404, detail=config.ERROR_MESSAGES["not_found"]
+            )
 
         row = movies_df.iloc[movie_id]
         movie_dict = movie_to_dict(row)
@@ -956,6 +1175,7 @@ async def get_movie_by_id(movie_id: int):
         logger.error(f"Get movie by ID error: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve movie")
 
+
 @app.get(f"{config.API_PREFIX}/genres")
 async def get_genres():
     """Get list of all available genres"""
@@ -965,9 +1185,9 @@ async def get_genres():
 
         # Extract all genres from the pipe-separated genre strings
         all_genres = set()
-        for genres_str in movies_df['genres'].dropna():
+        for genres_str in movies_df["genres"].dropna():
             if isinstance(genres_str, str):
-                genres = [g.strip() for g in genres_str.split('|') if g.strip()]
+                genres = [g.strip() for g in genres_str.split("|") if g.strip()]
                 all_genres.update(genres)
 
         return {"genres": sorted(list(all_genres))}
@@ -976,20 +1196,29 @@ async def get_genres():
         logger.error(f"Get genres error: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve genres")
 
+
 @app.get(f"{config.API_PREFIX}/directors")
 async def get_directors(
     limit: int = Query(50, ge=1, le=200, description="Number of directors to return"),
-    search: Optional[str] = Query(None, description="Search directors by name")
+    search: Optional[str] = Query(None, description="Search directors by name"),
 ):
     """Get list of directors with optional search"""
     try:
         if movies_df is None:
-            return {"directors": ["Christopher Nolan", "Quentin Tarantino", "Martin Scorsese"]}
+            return {
+                "directors": [
+                    "Christopher Nolan",
+                    "Quentin Tarantino",
+                    "Martin Scorsese",
+                ]
+            }
 
-        directors_df = movies_df['director_name'].dropna().drop_duplicates()
+        directors_df = movies_df["director_name"].dropna().drop_duplicates()
 
         if search:
-            directors_df = directors_df[directors_df.str.contains(search, case=False, na=False)]
+            directors_df = directors_df[
+                directors_df.str.contains(search, case=False, na=False)
+            ]
 
         directors = sorted(directors_df.head(limit).tolist())
         return {"directors": directors}
@@ -997,6 +1226,7 @@ async def get_directors(
     except Exception as e:
         logger.error(f"Get directors error: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve directors")
+
 
 @app.get(f"{config.API_PREFIX}/stats", response_model=StatsResponse)
 async def get_stats():
@@ -1008,23 +1238,62 @@ async def get_stats():
             # Database statistics
             database_stats = {
                 "total_movies": len(movies_df),
-                "unique_directors": movies_df['director_name'].nunique(),
-                "unique_actors": movies_df['actor_1_name'].nunique(),
-                "unique_genres": len(set(genre.strip() for genres in movies_df['genres'].dropna() for genre in genres.split('|') if genre.strip())),
+                "unique_directors": movies_df["director_name"].nunique(),
+                "unique_actors": movies_df["actor_1_name"].nunique(),
+                "unique_genres": len(
+                    set(
+                        genre.strip()
+                        for genres in movies_df["genres"].dropna()
+                        for genre in genres.split("|")
+                        if genre.strip()
+                    )
+                ),
                 "year_range": {
-                    "min": int(movies_df['title_year'].min()) if pd.notna(movies_df['title_year'].min()) else None,
-                    "max": int(movies_df['title_year'].max()) if pd.notna(movies_df['title_year'].max()) else None
+                    "min": (
+                        int(movies_df["title_year"].min())
+                        if pd.notna(movies_df["title_year"].min())
+                        else None
+                    ),
+                    "max": (
+                        int(movies_df["title_year"].max())
+                        if pd.notna(movies_df["title_year"].max())
+                        else None
+                    ),
                 },
                 "rating_range": {
-                    "min": float(movies_df['imdb_score'].min()) if pd.notna(movies_df['imdb_score'].min()) else None,
-                    "max": float(movies_df['imdb_score'].max()) if pd.notna(movies_df['imdb_score'].max()) else None,
-                    "avg": float(movies_df['imdb_score'].mean()) if pd.notna(movies_df['imdb_score'].mean()) else None
+                    "min": (
+                        float(movies_df["imdb_score"].min())
+                        if pd.notna(movies_df["imdb_score"].min())
+                        else None
+                    ),
+                    "max": (
+                        float(movies_df["imdb_score"].max())
+                        if pd.notna(movies_df["imdb_score"].max())
+                        else None
+                    ),
+                    "avg": (
+                        float(movies_df["imdb_score"].mean())
+                        if pd.notna(movies_df["imdb_score"].mean())
+                        else None
+                    ),
                 },
                 "duration_stats": {
-                    "min": int(movies_df['duration'].min()) if pd.notna(movies_df['duration'].min()) else None,
-                    "max": int(movies_df['duration'].max()) if pd.notna(movies_df['duration'].max()) else None,
-                    "avg": float(movies_df['duration'].mean()) if pd.notna(movies_df['duration'].mean()) else None
-                }
+                    "min": (
+                        int(movies_df["duration"].min())
+                        if pd.notna(movies_df["duration"].min())
+                        else None
+                    ),
+                    "max": (
+                        int(movies_df["duration"].max())
+                        if pd.notna(movies_df["duration"].max())
+                        else None
+                    ),
+                    "avg": (
+                        float(movies_df["duration"].mean())
+                        if pd.notna(movies_df["duration"].mean())
+                        else None
+                    ),
+                },
             }
 
         # Performance statistics
@@ -1036,16 +1305,27 @@ async def get_stats():
         # System statistics
         try:
             import psutil
+
             system_stats = {
                 "cpu_percent": psutil.cpu_percent(interval=0.1),
                 "memory": {
                     "percent": psutil.virtual_memory().percent,
-                    "available_gb": round(psutil.virtual_memory().available / (1024**3), 2)
+                    "available_gb": round(
+                        psutil.virtual_memory().available / (1024**3), 2
+                    ),
                 },
                 "disk": {
-                    "percent": psutil.disk_usage('/').percent if os.name != 'nt' else psutil.disk_usage('C:\\').percent,
-                    "free_gb": round(psutil.disk_usage('/').free / (1024**3), 2) if os.name != 'nt' else round(psutil.disk_usage('C:\\').free / (1024**3), 2)
-                }
+                    "percent": (
+                        psutil.disk_usage("/").percent
+                        if os.name != "nt"
+                        else psutil.disk_usage("C:\\").percent
+                    ),
+                    "free_gb": (
+                        round(psutil.disk_usage("/").free / (1024**3), 2)
+                        if os.name != "nt"
+                        else round(psutil.disk_usage("C:\\").free / (1024**3), 2)
+                    ),
+                },
             }
         except ImportError:
             system_stats = {"status": "psutil not available"}
@@ -1054,22 +1334,27 @@ async def get_stats():
             database=database_stats,
             performance=performance_stats,
             cache=cache_stats,
-            system=system_stats
+            system=system_stats,
         )
 
     except Exception as e:
         logger.error(f"Stats error: {e}")
         raise HTTPException(status_code=500, detail="Failed to retrieve statistics")
 
+
 # Admin endpoints (only in debug mode)
 if config.DEBUG:
+
     @app.post(f"{config.API_PREFIX}/admin/cache/clear")
     async def clear_cache():
         """Clear the application cache"""
         if cache:
             cache.clear()
             logger.info("Cache cleared by admin request")
-            return {"message": "Cache cleared successfully", "timestamp": datetime.now().isoformat()}
+            return {
+                "message": "Cache cleared successfully",
+                "timestamp": datetime.now().isoformat(),
+            }
         return {"message": "Cache not enabled"}
 
     @app.get(f"{config.API_PREFIX}/admin/cache/stats")
@@ -1085,7 +1370,7 @@ if config.DEBUG:
         return {
             "performance": performance_monitor.get_performance_summary(),
             "health": performance_monitor.get_health_status(),
-            "alerts": alert_manager.get_recent_alerts()
+            "alerts": alert_manager.get_recent_alerts(),
         }
 
     @app.post(f"{config.API_PREFIX}/admin/reload")
@@ -1101,13 +1386,17 @@ if config.DEBUG:
             from avl import AVLTree
 
             avl_tree = AVLTree()
-            for title in movies_df['movie_title'].dropna():
+            for title in movies_df["movie_title"].dropna():
                 clean_title = title.strip()
                 if clean_title:
                     avl_tree.insert(clean_title)
 
             trie = Trie()
-            movie_titles = [title.strip() for title in movies_df['movie_title'].dropna() if title.strip()]
+            movie_titles = [
+                title.strip()
+                for title in movies_df["movie_title"].dropna()
+                if title.strip()
+            ]
             trie.formTrie(movie_titles)
 
             # Clear cache
@@ -1115,15 +1404,20 @@ if config.DEBUG:
                 cache.clear()
 
             logger.info("Data reloaded successfully")
-            return {"message": "Data reloaded successfully", "movies_loaded": len(movies_df)}
+            return {
+                "message": "Data reloaded successfully",
+                "movies_loaded": len(movies_df),
+            }
 
         except Exception as e:
             logger.error(f"Failed to reload data: {e}")
             raise HTTPException(status_code=500, detail="Failed to reload data")
 
+
 # Static file serving for development
 if config.DEBUG:
     app.mount("/static", StaticFiles(directory="static"), name="static")
+
 
 # Health check endpoint for load balancers
 @app.get("/health")
@@ -1131,14 +1425,16 @@ async def simple_health():
     """Simple health check for load balancers"""
     return {"status": "ok"}
 
+
 # Run the application
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "main:app",
         host=config.HOST,
         port=config.PORT,
         reload=config.RELOAD,
         log_level=config.LOG_LEVEL.lower(),
-        workers=config.WORKER_COUNT if not config.RELOAD else 1
+        workers=config.WORKER_COUNT if not config.RELOAD else 1,
     )

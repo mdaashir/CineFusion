@@ -1,0 +1,98 @@
+version: '3.8'
+
+services:
+  # CineFusion Backend Service
+  backend:
+    build:
+      context: ./Backend
+      dockerfile: Dockerfile
+    container_name: cinefusion-backend
+    restart: unless-stopped
+    ports:
+      - '8001:8001'
+    volumes:
+      - ./config.json:/app/config.json:ro
+      - ./Backend/data:/app/data:ro
+      - backend_logs:/app/logs
+    environment:
+      - ENVIRONMENT=production
+      - HOST=0.0.0.0
+      - PORT=8001
+      - DEBUG=false
+      - CORS_ORIGINS=http://localhost:8000,http://localhost
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+    networks:
+      - cinefusion-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:8001/api/health']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # CineFusion Frontend Service
+  frontend:
+    build:
+      context: ./Frontend
+      dockerfile: Dockerfile
+    container_name: cinefusion-frontend
+    restart: unless-stopped
+    ports:
+      - '8000:80'
+    volumes:
+      - ./config.json:/usr/share/nginx/html/config.json:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - cinefusion-network
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:80']
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+  # Optional: Reverse Proxy (Production)
+  nginx-proxy:
+    image: nginx:alpine
+    container_name: cinefusion-proxy
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx-proxy.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - cinefusion-network
+    profiles:
+      - production
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
+
+volumes:
+  backend_logs:
+    driver: local
+
+networks:
+  cinefusion-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

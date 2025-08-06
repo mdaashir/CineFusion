@@ -1,0 +1,1149 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "CineFusion API",
+        "description": "A modern movie search and recommendation API with intelligent autocomplete",
+        "version": "1.0.0"
+    },
+    "paths": {
+        "/": {
+            "get": {
+                "summary": "Root",
+                "description": "Root endpoint with comprehensive health check",
+                "operationId": "root__get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/health": {
+            "get": {
+                "summary": "Health Check",
+                "description": "Detailed health check endpoint with full system status",
+                "operationId": "health_check_api_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/HealthResponse" }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/search": {
+            "get": {
+                "summary": "Search Movies",
+                "description": "Enhanced search for movies with comprehensive filtering and sorting",
+                "operationId": "search_movies_api_search_get",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 100,
+                            "description": "Search query",
+                            "title": "Q"
+                        },
+                        "description": "Search query"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "description": "Maximum number of results",
+                            "default": 10,
+                            "title": "Limit"
+                        },
+                        "description": "Maximum number of results"
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "Number of results to skip",
+                            "default": 0,
+                            "title": "Offset"
+                        },
+                        "description": "Number of results to skip"
+                    },
+                    {
+                        "name": "genre",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [ { "type": "string" }, { "type": "null" } ],
+                            "description": "Filter by genre",
+                            "title": "Genre"
+                        },
+                        "description": "Filter by genre"
+                    },
+                    {
+                        "name": "year",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                { "type": "integer", "maximum": 2030, "minimum": 1880 },
+                                { "type": "null" }
+                            ],
+                            "description": "Filter by year",
+                            "title": "Year"
+                        },
+                        "description": "Filter by year"
+                    },
+                    {
+                        "name": "min_rating",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                { "type": "number", "maximum": 10, "minimum": 0 },
+                                { "type": "null" }
+                            ],
+                            "description": "Minimum IMDB rating",
+                            "title": "Min Rating"
+                        },
+                        "description": "Minimum IMDB rating"
+                    },
+                    {
+                        "name": "max_rating",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                { "type": "number", "maximum": 10, "minimum": 0 },
+                                { "type": "null" }
+                            ],
+                            "description": "Maximum IMDB rating",
+                            "title": "Max Rating"
+                        },
+                        "description": "Maximum IMDB rating"
+                    },
+                    {
+                        "name": "director",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [ { "type": "string" }, { "type": "null" } ],
+                            "description": "Filter by director",
+                            "title": "Director"
+                        },
+                        "description": "Filter by director"
+                    },
+                    {
+                        "name": "actor",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [ { "type": "string" }, { "type": "null" } ],
+                            "description": "Filter by actor",
+                            "title": "Actor"
+                        },
+                        "description": "Filter by actor"
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^(rating|year|title|duration|budget)$",
+                            "description": "Sort by field",
+                            "default": "rating",
+                            "title": "Sort By"
+                        },
+                        "description": "Sort by field"
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^(asc|desc)$",
+                            "description": "Sort order",
+                            "default": "desc",
+                            "title": "Sort Order"
+                        },
+                        "description": "Sort order"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/SearchResponse" }
+                            }
+                        }
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Unprocessable Content"
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Too Many Requests"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/suggestions": {
+            "get": {
+                "summary": "Get Suggestions",
+                "description": "Get autocomplete suggestions for movie search with enhanced features",
+                "operationId": "get_suggestions_api_suggestions_get",
+                "parameters": [
+                    {
+                        "name": "q",
+                        "in": "query",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 50,
+                            "description": "Query for suggestions",
+                            "title": "Q"
+                        },
+                        "description": "Query for suggestions"
+                    },
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 20,
+                            "minimum": 1,
+                            "description": "Maximum number of suggestions",
+                            "default": 8,
+                            "title": "Limit"
+                        },
+                        "description": "Maximum number of suggestions"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/SuggestionsResponse" }
+                            }
+                        }
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Unprocessable Content"
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Too Many Requests"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/movies": {
+            "get": {
+                "summary": "Get Movies",
+                "description": "Get paginated list of all movies with sorting",
+                "operationId": "get_movies_api_movies_get",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 100,
+                            "minimum": 1,
+                            "description": "Number of movies to return",
+                            "default": 20,
+                            "title": "Limit"
+                        },
+                        "description": "Number of movies to return"
+                    },
+                    {
+                        "name": "offset",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "minimum": 0,
+                            "description": "Number of movies to skip",
+                            "default": 0,
+                            "title": "Offset"
+                        },
+                        "description": "Number of movies to skip"
+                    },
+                    {
+                        "name": "sort_by",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^(rating|year|title|duration|budget)$",
+                            "description": "Sort by field",
+                            "default": "rating",
+                            "title": "Sort By"
+                        },
+                        "description": "Sort by field"
+                    },
+                    {
+                        "name": "sort_order",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "string",
+                            "pattern": "^(asc|desc)$",
+                            "description": "Sort order",
+                            "default": "desc",
+                            "title": "Sort Order"
+                        },
+                        "description": "Sort order"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": { "$ref": "#/components/schemas/MovieModel" },
+                                    "title": "Response Get Movies Api Movies Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Unprocessable Content"
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Too Many Requests"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/movies/{movie_id}": {
+            "get": {
+                "summary": "Get Movie By Id",
+                "description": "Get specific movie by ID/index",
+                "operationId": "get_movie_by_id_api_movies__movie_id__get",
+                "parameters": [
+                    {
+                        "name": "movie_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": { "type": "integer", "title": "Movie Id" }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/MovieModel" }
+                            }
+                        }
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Unprocessable Content"
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Too Many Requests"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/genres": {
+            "get": {
+                "summary": "Get Genres",
+                "description": "Get list of all available genres",
+                "operationId": "get_genres_api_genres_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": { "application/json": { "schema": { } } }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/directors": {
+            "get": {
+                "summary": "Get Directors",
+                "description": "Get list of directors with optional search",
+                "operationId": "get_directors_api_directors_get",
+                "parameters": [
+                    {
+                        "name": "limit",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "type": "integer",
+                            "maximum": 200,
+                            "minimum": 1,
+                            "description": "Number of directors to return",
+                            "default": 50,
+                            "title": "Limit"
+                        },
+                        "description": "Number of directors to return"
+                    },
+                    {
+                        "name": "search",
+                        "in": "query",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [ { "type": "string" }, { "type": "null" } ],
+                            "description": "Search directors by name",
+                            "title": "Search"
+                        },
+                        "description": "Search directors by name"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": { "application/json": { "schema": { } } }
+                    },
+                    "422": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Unprocessable Content"
+                    },
+                    "429": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Too Many Requests"
+                    },
+                    "500": {
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        },
+                        "description": "Internal Server Error"
+                    }
+                }
+            }
+        },
+        "/api/stats": {
+            "get": {
+                "summary": "Get Stats",
+                "description": "Get comprehensive database and system statistics",
+                "operationId": "get_stats_api_stats_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/StatsResponse" }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/cache/clear": {
+            "post": {
+                "summary": "Clear Cache",
+                "description": "Clear the application cache",
+                "operationId": "clear_cache_api_admin_cache_clear_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": { "application/json": { "schema": { } } }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/cache/stats": {
+            "get": {
+                "summary": "Get Cache Stats",
+                "description": "Get detailed cache statistics",
+                "operationId": "get_cache_stats_api_admin_cache_stats_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": { "application/json": { "schema": { } } }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/performance": {
+            "get": {
+                "summary": "Get Performance Metrics",
+                "description": "Get detailed performance metrics",
+                "operationId": "get_performance_metrics_api_admin_performance_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": { "application/json": { "schema": { } } }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/admin/reload": {
+            "post": {
+                "summary": "Reload Data",
+                "description": "Reload movie data (development only)",
+                "operationId": "reload_data_api_admin_reload_post",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": { "application/json": { "schema": { } } }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/health": {
+            "get": {
+                "summary": "Simple Health",
+                "description": "Simple health check for load balancers",
+                "operationId": "simple_health_health_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": { "application/json": { "schema": { } } }
+                    },
+                    "422": {
+                        "description": "Unprocessable Content",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "429": {
+                        "description": "Too Many Requests",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "content": {
+                            "application/json": {
+                                "schema": { "$ref": "#/components/schemas/ErrorResponse" }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "ErrorResponse": {
+                "properties": {
+                    "detail": {
+                        "type": "string",
+                        "title": "Detail",
+                        "description": "Error description"
+                    },
+                    "error_code": {
+                        "anyOf": [ { "type": "string" }, { "type": "null" } ],
+                        "title": "Error Code",
+                        "description": "Error code"
+                    },
+                    "error_id": {
+                        "type": "string",
+                        "title": "Error Id",
+                        "description": "Unique error ID"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "title": "Timestamp",
+                        "description": "Error timestamp"
+                    },
+                    "path": {
+                        "anyOf": [ { "type": "string" }, { "type": "null" } ],
+                        "title": "Path",
+                        "description": "Request path where error occurred"
+                    }
+                },
+                "type": "object",
+                "required": [ "detail" ],
+                "title": "ErrorResponse",
+                "description": "Standardized error response model"
+            },
+            "HealthResponse": {
+                "properties": {
+                    "status": {
+                        "type": "string",
+                        "title": "Status",
+                        "description": "Service status"
+                    },
+                    "version": {
+                        "type": "string",
+                        "title": "Version",
+                        "description": "API version"
+                    },
+                    "timestamp": {
+                        "type": "string",
+                        "title": "Timestamp",
+                        "description": "Current timestamp"
+                    },
+                    "uptime_seconds": {
+                        "type": "number",
+                        "title": "Uptime Seconds",
+                        "description": "Service uptime in seconds"
+                    },
+                    "database_status": {
+                        "type": "string",
+                        "title": "Database Status",
+                        "description": "Database connection status"
+                    },
+                    "movies_loaded": {
+                        "type": "integer",
+                        "title": "Movies Loaded",
+                        "description": "Number of movies in database"
+                    },
+                    "cache_stats": {
+                        "anyOf": [
+                            { "additionalProperties": true, "type": "object" },
+                            { "type": "null" }
+                        ],
+                        "title": "Cache Stats",
+                        "description": "Cache statistics"
+                    },
+                    "performance_metrics": {
+                        "anyOf": [
+                            { "additionalProperties": true, "type": "object" },
+                            { "type": "null" }
+                        ],
+                        "title": "Performance Metrics",
+                        "description": "Performance metrics"
+                    },
+                    "system_info": {
+                        "anyOf": [
+                            { "additionalProperties": true, "type": "object" },
+                            { "type": "null" }
+                        ],
+                        "title": "System Info",
+                        "description": "System information"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "status",
+                    "version",
+                    "timestamp",
+                    "uptime_seconds",
+                    "database_status",
+                    "movies_loaded"
+                ],
+                "title": "HealthResponse",
+                "description": "Comprehensive health check response model"
+            },
+            "MovieModel": {
+                "properties": {
+                    "title": {
+                        "type": "string",
+                        "maxLength": 500,
+                        "minLength": 1,
+                        "title": "Title",
+                        "description": "Movie title"
+                    },
+                    "year": {
+                        "anyOf": [
+                            { "type": "integer", "maximum": 2030.0, "minimum": 1880.0 },
+                            { "type": "null" }
+                        ],
+                        "title": "Year",
+                        "description": "Release year"
+                    },
+                    "rating": {
+                        "anyOf": [
+                            { "type": "number", "maximum": 10.0, "minimum": 0.0 },
+                            { "type": "null" }
+                        ],
+                        "title": "Rating",
+                        "description": "IMDb rating"
+                    },
+                    "genre": {
+                        "anyOf": [
+                            { "type": "string", "maxLength": 200 },
+                            { "type": "null" }
+                        ],
+                        "title": "Genre",
+                        "description": "Movie genre"
+                    },
+                    "director": {
+                        "anyOf": [
+                            { "type": "string", "maxLength": 200 },
+                            { "type": "null" }
+                        ],
+                        "title": "Director",
+                        "description": "Director name"
+                    },
+                    "duration": {
+                        "anyOf": [
+                            { "type": "integer", "maximum": 1000.0, "minimum": 1.0 },
+                            { "type": "null" }
+                        ],
+                        "title": "Duration",
+                        "description": "Duration in minutes"
+                    },
+                    "budget": {
+                        "anyOf": [ { "type": "number", "minimum": 0.0 }, { "type": "null" } ],
+                        "title": "Budget",
+                        "description": "Movie budget"
+                    },
+                    "actors": {
+                        "anyOf": [
+                            { "type": "string", "maxLength": 1000 },
+                            { "type": "null" }
+                        ],
+                        "title": "Actors",
+                        "description": "Main actors"
+                    },
+                    "plot": {
+                        "anyOf": [
+                            { "type": "string", "maxLength": 2000 },
+                            { "type": "null" }
+                        ],
+                        "title": "Plot",
+                        "description": "Movie plot"
+                    },
+                    "country": {
+                        "anyOf": [
+                            { "type": "string", "maxLength": 100 },
+                            { "type": "null" }
+                        ],
+                        "title": "Country",
+                        "description": "Country of origin"
+                    },
+                    "language": {
+                        "anyOf": [
+                            { "type": "string", "maxLength": 100 },
+                            { "type": "null" }
+                        ],
+                        "title": "Language",
+                        "description": "Primary language"
+                    },
+                    "awards": {
+                        "anyOf": [
+                            { "type": "string", "maxLength": 500 },
+                            { "type": "null" }
+                        ],
+                        "title": "Awards",
+                        "description": "Awards and nominations"
+                    }
+                },
+                "type": "object",
+                "required": [ "title" ],
+                "title": "MovieModel",
+                "description": "Enhanced movie model with comprehensive validation",
+                "example": {
+                    "actors": "Christian Bale, Heath Ledger, Aaron Eckhart",
+                    "budget": 185000000.0,
+                    "director": "Christopher Nolan",
+                    "duration": 152,
+                    "genre": "Action|Crime|Drama",
+                    "rating": 9.0,
+                    "title": "The Dark Knight",
+                    "year": 2008
+                }
+            },
+            "SearchResponse": {
+                "properties": {
+                    "movies": {
+                        "items": { "$ref": "#/components/schemas/MovieModel" },
+                        "type": "array",
+                        "title": "Movies"
+                    },
+                    "total_count": {
+                        "type": "integer",
+                        "title": "Total Count",
+                        "description": "Total number of movies found"
+                    },
+                    "query": {
+                        "type": "string",
+                        "title": "Query",
+                        "description": "Original search query"
+                    },
+                    "filters": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Filters",
+                        "description": "Applied filters"
+                    },
+                    "execution_time_ms": {
+                        "type": "number",
+                        "title": "Execution Time Ms",
+                        "description": "Search execution time in milliseconds"
+                    },
+                    "cached": {
+                        "type": "boolean",
+                        "title": "Cached",
+                        "description": "Whether result was served from cache",
+                        "default": false
+                    },
+                    "pagination": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Pagination",
+                        "description": "Pagination information"
+                    }
+                },
+                "type": "object",
+                "required": [ "movies", "total_count", "query", "execution_time_ms" ],
+                "title": "SearchResponse",
+                "description": "Enhanced search response model"
+            },
+            "StatsResponse": {
+                "properties": {
+                    "database": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Database"
+                    },
+                    "performance": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "Performance"
+                    },
+                    "cache": {
+                        "anyOf": [
+                            { "additionalProperties": true, "type": "object" },
+                            { "type": "null" }
+                        ],
+                        "title": "Cache"
+                    },
+                    "system": {
+                        "additionalProperties": true,
+                        "type": "object",
+                        "title": "System"
+                    }
+                },
+                "type": "object",
+                "required": [ "database", "performance", "system" ],
+                "title": "StatsResponse",
+                "description": "Database and system statistics response"
+            },
+            "SuggestionsResponse": {
+                "properties": {
+                    "suggestions": {
+                        "items": { "type": "string" },
+                        "type": "array",
+                        "title": "Suggestions"
+                    },
+                    "query": {
+                        "type": "string",
+                        "title": "Query",
+                        "description": "Original query"
+                    },
+                    "execution_time_ms": {
+                        "type": "number",
+                        "title": "Execution Time Ms",
+                        "description": "Execution time in milliseconds"
+                    },
+                    "cached": {
+                        "type": "boolean",
+                        "title": "Cached",
+                        "description": "Whether result was served from cache",
+                        "default": false
+                    },
+                    "total_available": {
+                        "type": "integer",
+                        "title": "Total Available",
+                        "description": "Total suggestions available",
+                        "default": 0
+                    }
+                },
+                "type": "object",
+                "required": [ "suggestions", "query", "execution_time_ms" ],
+                "title": "SuggestionsResponse",
+                "description": "Enhanced suggestions response model"
+            }
+        }
+    }
+}
