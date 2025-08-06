@@ -1,0 +1,280 @@
+{
+    "application": {
+        "name": "CineFusion",
+        "version": "1.0.0",
+        "description": "Advanced movie discovery platform with dynamic features",
+        "author": "mdaashir",
+        "license": "MIT"
+    },
+    "frontend": {
+        "api": {
+            "base_url": "http://localhost:8001/api",
+            "timeout_ms": 5000,
+            "retry_attempts": 3
+        },
+        "ui": {
+            "items_per_page": 24,
+            "debounce_delay": 300,
+            "cache_duration_ms": 300000,
+            "themes": [ "dark", "light" ],
+            "default_theme": "dark",
+            "storage_prefix": "cinefusion_"
+        },
+        "pagination": {
+            "default_page_size": 24,
+            "max_page_size": 100,
+            "show_page_numbers": 5
+        },
+        "search": {
+            "min_query_length": 2,
+            "suggestion_limit": 5,
+            "search_delay_ms": 300
+        }
+    },
+    "backend": {
+        "server": {
+            "host": "0.0.0.0",
+            "port": 8001,
+            "debug": false,
+            "reload": false,
+            "workers": 1,
+            "access_log": true,
+            "timeout": 30
+        },
+        "api": {
+            "prefix": "/api",
+            "title": "CineFusion API",
+            "description": "Movie discovery and search API",
+            "version": "1.0.0",
+            "docs_url": "/docs",
+            "redoc_url": "/redoc",
+            "openapi_url": "/openapi.json"
+        },
+        "cors": {
+            "allow_origins": [ "*" ],
+            "allow_credentials": true,
+            "allow_methods": [ "*" ],
+            "allow_headers": [ "*" ]
+        },
+        "database": {
+            "csv_file": "movie_metadata.csv",
+            "encoding": "utf-8",
+            "chunk_size": 1000,
+            "date_format": "%Y-%m-%d",
+            "missing_values": [ "", "N/A", "Unknown", "NULL", "null" ],
+            "data_types": {
+                "year": "int64",
+                "rating": "float64",
+                "votes": "int64",
+                "runtime": "int64"
+            }
+        },
+        "search": {
+            "default_limit": 24,
+            "max_limit": 100,
+            "min_query_length": 2,
+            "exact_match_boost": 2.0,
+            "partial_match_boost": 1.5,
+            "fuzzy_threshold": 0.6,
+            "enable_fuzzy_search": true,
+            "search_fields": [ "title", "director", "cast", "genre", "plot" ],
+            "boost_factors": {
+                "title": 3.0,
+                "director": 2.0,
+                "cast": 1.5,
+                "genre": 1.0,
+                "plot": 0.5
+            }
+        },
+        "suggestions": {
+            "max_suggestions": 10,
+            "min_query_length": 1,
+            "enable_caching": true,
+            "cache_ttl": 3600,
+            "suggestion_types": [ "title", "director", "cast", "genre" ]
+        },
+        "sorting": {
+            "default_sort": "rating",
+            "default_order": "desc",
+            "allowed_fields": [ "title", "year", "rating", "votes", "runtime" ],
+            "allowed_orders": [ "asc", "desc" ]
+        },
+        "filtering": {
+            "year_range": [ 1900, 2024 ],
+            "rating_range": [ 0.0, 10.0 ],
+            "runtime_range": [ 1, 500 ],
+            "genre_filter_enabled": true,
+            "director_filter_enabled": true
+        },
+        "cache": {
+            "enabled": true,
+            "ttl": 3600,
+            "max_size": 1000,
+            "clear_on_startup": false,
+            "cache_strategies": {
+                "search_results": 1800,
+                "suggestions": 3600,
+                "movie_details": 7200,
+                "popular_movies": 1800
+            }
+        },
+        "rate_limiting": {
+            "enabled": true,
+            "requests_per_minute": 60,
+            "burst_limit": 100,
+            "enable_per_ip": true,
+            "whitelist_ips": [ "127.0.0.1", "::1" ],
+            "block_duration": 300
+        },
+        "security": {
+            "api_key_required": false,
+            "cors_enabled": true,
+            "max_request_size": "10MB",
+            "allowed_file_types": [ ".csv", ".json" ],
+            "enable_rate_limiting": true,
+            "security_headers": {
+                "X-Content-Type-Options": "nosniff",
+                "X-Frame-Options": "DENY",
+                "X-XSS-Protection": "1; mode=block"
+            }
+        },
+        "performance": {
+            "enable_compression": true,
+            "compression_level": 6,
+            "enable_etag": true,
+            "static_file_cache": 86400,
+            "api_response_cache": 300
+        },
+        "logging": {
+            "level": "INFO",
+            "format": "json",
+            "enabled": true,
+            "log_requests": true,
+            "log_responses": false,
+            "loggers": {
+                "app": {
+                    "name": "CineFusion.app",
+                    "file": "cinefusion_app.log",
+                    "level": "INFO",
+                    "format": "json"
+                },
+                "access": {
+                    "name": "CineFusion.access",
+                    "file": "cinefusion_access.log",
+                    "level": "INFO",
+                    "format": "json"
+                },
+                "error": {
+                    "name": "CineFusion.error",
+                    "file": "cinefusion_errors.log",
+                    "level": "WARNING",
+                    "format": "json"
+                },
+                "security": {
+                    "name": "CineFusion.security",
+                    "file": "cinefusion_security.log",
+                    "level": "INFO",
+                    "format": "json"
+                },
+                "daily": {
+                    "name": "CineFusion.daily",
+                    "file": "cinefusion_daily.log",
+                    "level": "INFO",
+                    "format": "json"
+                }
+            },
+            "console": {
+                "enabled": true,
+                "level": "INFO",
+                "colored": true,
+                "format": "console"
+            },
+            "rotation": {
+                "enabled": true,
+                "when": "midnight",
+                "interval": 1,
+                "backup_count": 30,
+                "utc": false
+            }
+        },
+        "monitoring": {
+            "health_check_interval": 30,
+            "metrics_retention_hours": 24,
+            "alert_thresholds": {
+                "cpu_percent": 80,
+                "memory_percent": 80,
+                "disk_percent": 85,
+                "response_time_ms": 1000,
+                "error_rate_percent": 5.0
+            }
+        },
+        "fallback_data": {
+            "movies": [
+                {
+                    "title": "The Shawshank Redemption",
+                    "year": 1994,
+                    "rating": 9.3,
+                    "genre": "Drama",
+                    "director": "Frank Darabont"
+                },
+                {
+                    "title": "The Godfather",
+                    "year": 1972,
+                    "rating": 9.2,
+                    "genre": "Crime|Drama",
+                    "director": "Francis Ford Coppola"
+                },
+                {
+                    "title": "The Dark Knight",
+                    "year": 2008,
+                    "rating": 9.0,
+                    "genre": "Action|Crime|Drama",
+                    "director": "Christopher Nolan"
+                },
+                {
+                    "title": "Pulp Fiction",
+                    "year": 1994,
+                    "rating": 8.9,
+                    "genre": "Crime|Drama",
+                    "director": "Quentin Tarantino"
+                },
+                {
+                    "title": "Forrest Gump",
+                    "year": 1994,
+                    "rating": 8.8,
+                    "genre": "Drama|Romance",
+                    "director": "Robert Zemeckis"
+                }
+            ]
+        },
+        "error_messages": {
+            "search_failed": "Search operation failed",
+            "suggestions_failed": "Suggestions retrieval failed",
+            "database_unavailable": "Movie database is currently unavailable",
+            "invalid_query": "Invalid search query provided",
+            "rate_limit_exceeded": "Rate limit exceeded. Please try again later.",
+            "internal_error": "Internal server error occurred",
+            "not_found": "Resource not found",
+            "validation_error": "Request validation failed"
+        },
+        "response_headers": {
+            "process_time": "X-Process-Time",
+            "cache_status": "X-Cache-Status",
+            "rate_limit_remaining": "X-RateLimit-Remaining",
+            "rate_limit_reset": "X-RateLimit-Reset"
+        }
+    },
+    "admin": {
+        "enabled": true,
+        "default_credentials": {
+            "username": "admin",
+            "password": "admin123"
+        },
+        "features": {
+            "debug": true,
+            "status": true,
+            "test": true
+        },
+        "session_timeout_minutes": 30
+    }
+}

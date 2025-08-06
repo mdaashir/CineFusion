@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CineFusion - Advanced Movie Discovery Platform</title>
+        <link href="styles.css" rel="stylesheet">
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    </head>
+
+    <body class="theme-dark">
+        <!-- Navigation Header -->
+        <nav class="navbar" id="navbar">
+            <div class="nav-container">
+                <!-- Logo and Brand -->
+                <div class="nav-brand">
+                    <img src="img/logo-color.png" alt="CineFusion" class="nav-logo">
+                    <span class="nav-title">CineFusion</span>
+                </div>
+
+                <!-- Navigation Links -->
+                <div class="nav-links" id="navLinks">
+                    <a href="#" class="nav-link active" data-page="movies">
+                        <i class="fas fa-film"></i> Movies
+                    </a>
+                    <a href="#" class="nav-link" data-page="genres">
+                        <i class="fas fa-theater-masks"></i> Genres
+                    </a>
+                    <a href="#" class="nav-link" data-page="watchlist">
+                        <i class="fas fa-bookmark"></i> Watchlist
+                    </a>
+                    <a href="#" class="nav-link" data-page="search">
+                        <i class="fas fa-search"></i> Search
+                    </a>
+                    <a href="#" class="nav-link admin-only" data-page="admin" style="display: none;">
+                        <i class="fas fa-cog"></i> Admin
+                    </a>
+                </div>
+
+                <!-- User Controls -->
+                <div class="nav-controls">
+                    <!-- Theme Toggle -->
+                    <button class="theme-toggle" id="themeToggle" title="Toggle Theme">
+                        <i class="fas fa-moon"></i>
+                    </button>
+
+                    <!-- Search Toggle (Mobile) -->
+                    <button class="search-toggle" id="searchToggle" title="Search">
+                        <i class="fas fa-search"></i>
+                    </button>
+
+                    <!-- User Menu -->
+                    <div class="user-menu" id="userMenu">
+                        <button class="user-btn" id="userBtn">
+                            <i class="fas fa-user"></i>
+                            <span class="user-name">Guest</span>
+                        </button>
+                        <div class="user-dropdown" id="userDropdown">
+                            <a href="#" class="dropdown-item" data-action="login">
+                                <i class="fas fa-sign-in-alt"></i> Login
+                            </a>
+                            <a href="#" class="dropdown-item" data-action="signup">
+                                <i class="fas fa-user-plus"></i> Sign Up
+                            </a>
+                            <a href="#" class="dropdown-item" data-action="logout" style="display: none;">
+                                <i class="fas fa-sign-out-alt"></i> Logout
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Toggle -->
+                    <button class="mobile-toggle" id="mobileToggle">
+                        <span></span>
+                        <span></span>
+                        <span></span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Mobile Search Bar -->
+            <div class="mobile-search" id="mobileSearch">
+                <div class="search-container">
+                    <input type="text" class="search-input" id="mobileSearchInput" placeholder="Search movies...">
+                    <button class="search-btn">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content" id="mainContent">
+            <!-- Search Section (Desktop) -->
+            <section class="search-section" id="searchSection">
+                <div class="container">
+                    <div class="search-hero">
+                        <h1>Discover Amazing Movies</h1>
+                        <p>Search through thousands of movies with intelligent autocomplete</p>
+
+                        <div class="search-container advanced-search">
+                            <div class="search-input-wrapper">
+                                <input type="text" class="search-input" id="mainSearchInput"
+                                    placeholder="Search movies, actors, directors...">
+                                <div class="search-dropdown" id="searchDropdown"></div>
+                            </div>
+                            <button class="search-btn" id="searchBtn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+
+                        <!-- Quick Filters -->
+                        <div class="quick-filters">
+                            <button class="filter-btn active" data-filter="all">All</button>
+                            <button class="filter-btn" data-filter="popular">Popular</button>
+                            <button class="filter-btn" data-filter="recent">Recent</button>
+                            <button class="filter-btn" data-filter="top-rated">Top Rated</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Movies Page -->
+            <section class="page-content" id="moviesPage">
+                <div class="container">
+                    <!-- Filters and Controls -->
+                    <div class="content-header">
+                        <div class="content-title">
+                            <h2>Movies</h2>
+                            <span class="content-count" id="moviesCount">Loading...</span>
+                        </div>
+
+                        <div class="content-controls">
+                            <button class="control-btn" id="filtersToggle">
+                                <i class="fas fa-filter"></i> Filters
+                            </button>
+                            <div class="view-controls">
+                                <button class="view-btn active" data-view="grid">
+                                    <i class="fas fa-th"></i>
+                                </button>
+                                <button class="view-btn" data-view="list">
+                                    <i class="fas fa-list"></i>
+                                </button>
+                            </div>
+                            <select class="sort-select" id="sortSelect">
+                                <option value="rating-desc">Highest Rated</option>
+                                <option value="rating-asc">Lowest Rated</option>
+                                <option value="year-desc">Newest</option>
+                                <option value="year-asc">Oldest</option>
+                                <option value="title-asc">Title A-Z</option>
+                                <option value="title-desc">Title Z-A</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Filters Panel -->
+                    <div class="filters-panel" id="filtersPanel">
+                        <div class="filters-grid">
+                            <div class="filter-group">
+                                <label>Genre</label>
+                                <select id="genreFilter">
+                                    <option value="">All Genres</option>
+                                </select>
+                            </div>
+                            <div class="filter-group">
+                                <label>Year Range</label>
+                                <div class="range-inputs">
+                                    <input type="number" id="yearFrom" placeholder="From" min="1900" max="2025">
+                                    <input type="number" id="yearTo" placeholder="To" min="1900" max="2025">
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <label>Rating</label>
+                                <div class="range-slider">
+                                    <input type="range" id="ratingRange" min="0" max="10" step="0.1" value="0">
+                                    <span class="range-value" id="ratingValue">0+</span>
+                                </div>
+                            </div>
+                            <div class="filter-group">
+                                <label>Duration (minutes)</label>
+                                <div class="range-inputs">
+                                    <input type="number" id="durationFrom" placeholder="Min" min="0">
+                                    <input type="number" id="durationTo" placeholder="Max" min="0">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="filters-actions">
+                            <button class="btn btn-primary" id="applyFilters">Apply Filters</button>
+                            <button class="btn btn-secondary" id="clearFilters">Clear All</button>
+                        </div>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div class="loading-state" id="moviesLoading">
+                        <div class="loading-spinner"></div>
+                        <p>Loading movies...</p>
+                    </div>
+
+                    <!-- Movies Grid -->
+                    <div class="movies-grid" id="moviesGrid"></div>
+
+                    <!-- Pagination -->
+                    <div class="pagination" id="moviesPagination"></div>
+                </div>
+            </section>
+
+            <!-- Genres Page -->
+            <section class="page-content hidden" id="genresPage">
+                <div class="container">
+                    <div class="content-header">
+                        <h2>Explore by Genre</h2>
+                    </div>
+                    <div class="genres-grid" id="genresGrid"></div>
+                </div>
+            </section>
+
+            <!-- Watchlist Page -->
+            <section class="page-content hidden" id="watchlistPage">
+                <div class="container">
+                    <div class="content-header">
+                        <div class="content-title">
+                            <h2>My Watchlist</h2>
+                            <span class="content-count" id="watchlistCount">0 movies</span>
+                        </div>
+                        <div class="content-controls">
+                            <button class="btn btn-secondary" id="clearWatchlist">
+                                <i class="fas fa-trash"></i> Clear All
+                            </button>
+                        </div>
+                    </div>
+                    <div class="watchlist-empty" id="watchlistEmpty">
+                        <i class="fas fa-bookmark fa-3x"></i>
+                        <h3>Your watchlist is empty</h3>
+                        <p>Start adding movies to keep track of what you want to watch!</p>
+                    </div>
+                    <div class="movies-grid" id="watchlistGrid"></div>
+                </div>
+            </section>
+
+            <!-- Search Results Page -->
+            <section class="page-content hidden" id="searchPage">
+                <div class="container">
+                    <div class="content-header">
+                        <div class="content-title">
+                            <h2>Search Results</h2>
+                            <span class="content-count" id="searchCount">0 results</span>
+                        </div>
+                    </div>
+                    <div class="search-results" id="searchResults"></div>
+                    <div class="pagination" id="searchPagination"></div>
+                </div>
+            </section>
+
+            <!-- Admin Page -->
+            <section class="page-content hidden" id="adminPage">
+                <div class="container">
+                    <div class="content-header">
+                        <div class="content-title">
+                            <h2>Admin Panel</h2>
+                            <span class="content-count">System Management</span>
+                        </div>
+                    </div>
+
+                    <!-- Admin Navigation -->
+                    <div class="admin-nav">
+                        <button class="admin-tab-btn active" data-tab="debug">
+                            <i class="fas fa-bug"></i> Debug
+                        </button>
+                        <button class="admin-tab-btn" data-tab="status">
+                            <i class="fas fa-chart-bar"></i> Status
+                        </button>
+                        <button class="admin-tab-btn" data-tab="test">
+                            <i class="fas fa-vial"></i> API Tests
+                        </button>
+                    </div>
+
+                    <!-- Debug Tab -->
+                    <div class="admin-tab-content active" id="debugTab">
+                        <h3>Debug Console</h3>
+                        <div class="debug-section">
+                            <h4>Backend Connectivity Test</h4>
+                            <button class="admin-btn" onclick="testBackendConnection()">Test Backend</button>
+                            <div id="backend-debug-result" class="debug-result"></div>
+                        </div>
+
+                        <div class="debug-section">
+                            <h4>Search Functionality Test</h4>
+                            <input type="text" id="debug-search-input" class="debug-input"
+                                placeholder="Enter search term" value="spider">
+                            <button class="admin-btn" onclick="testSearchFunction()">Test Search</button>
+                            <div id="search-debug-result" class="debug-result"></div>
+                        </div>
+
+                        <div class="debug-section">
+                            <h4>Movies Pagination Test</h4>
+                            <button class="admin-btn" onclick="testMoviesPagination(1)">Test Page 1</button>
+                            <button class="admin-btn" onclick="testMoviesPagination(2)">Test Page 2</button>
+                            <div id="movies-debug-result" class="debug-result"></div>
+                        </div>
+
+                        <div class="debug-section">
+                            <h4>Filter Test</h4>
+                            <button class="admin-btn" onclick="testFilter('all')">All</button>
+                            <button class="admin-btn" onclick="testFilter('popular')">Popular</button>
+                            <button class="admin-btn" onclick="testFilter('recent')">Recent</button>
+                            <button class="admin-btn" onclick="testFilter('top-rated')">Top Rated</button>
+                            <div id="filter-debug-result" class="debug-result"></div>
+                        </div>
+                    </div>
+
+                    <!-- Status Tab -->
+                    <div class="admin-tab-content" id="statusTab">
+                        <h3>System Status</h3>
+                        <button class="admin-btn" onclick="refreshSystemStatus()">Refresh Status</button>
+                        <div id="system-status-container"></div>
+                    </div>
+
+                    <!-- Test Tab -->
+                    <div class="admin-tab-content" id="testTab">
+                        <h3>API Test Suite</h3>
+                        <div class="test-section">
+                            <h4>Comprehensive API Tests</h4>
+                            <button class="admin-btn" onclick="runAllTests()">Run All Tests</button>
+                            <button class="admin-btn" onclick="runHealthTest()">Health Test</button>
+                            <button class="admin-btn" onclick="runMoviesTest()">Movies Test</button>
+                            <button class="admin-btn" onclick="runSearchTest()">Search Test</button>
+                            <button class="admin-btn" onclick="runGenresTest()">Genres Test</button>
+                            <button class="admin-btn" onclick="runStatsTest()">Stats Test</button>
+                            <div id="api-test-results" class="test-results"></div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Movie Detail Modal -->
+        <div class="modal" id="movieModal">
+            <div class="modal-content">
+                <button class="modal-close" id="modalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="modal-body" id="modalBody"></div>
+            </div>
+        </div>
+
+        <!-- Login Modal -->
+        <div class="modal" id="loginModal">
+            <div class="modal-content">
+                <button class="modal-close" id="loginModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="modal-body">
+                    <h2>Welcome Back</h2>
+                    <form id="loginForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="loginUsername">Username</label>
+                            <input type="text" id="loginUsername" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="loginPassword">Password</label>
+                            <input type="password" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Login</button>
+                        <p class="auth-switch">
+                            Don't have an account?
+                            <a href="#" id="switchToSignup">Sign up here</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Signup Modal -->
+        <div class="modal" id="signupModal">
+            <div class="modal-content">
+                <button class="modal-close" id="signupModalClose">
+                    <i class="fas fa-times"></i>
+                </button>
+                <div class="modal-body">
+                    <h2>Join CineFusion</h2>
+                    <form id="signupForm" class="auth-form">
+                        <div class="form-group">
+                            <label for="signupName">Full Name</label>
+                            <input type="text" id="signupName" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupEmail">Email</label>
+                            <input type="email" id="signupEmail" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="signupPassword">Password</label>
+                            <input type="password" id="signupPassword" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="confirmPassword">Confirm Password</label>
+                            <input type="password" id="confirmPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Sign Up</button>
+                        <p class="auth-switch">
+                            Already have an account?
+                            <a href="#" id="switchToLogin">Login here</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast Notifications -->
+        <div class="toast-container" id="toastContainer"></div>
+
+        <!-- Scripts -->
+        <script src="script.js"></script>
+    </body>
+
+</html>
