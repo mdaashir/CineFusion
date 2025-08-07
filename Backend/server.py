@@ -227,11 +227,56 @@ class CineFusionServer:
             logger.error(f"Dependencies check failed: {e}")
             return False
 
-    def run_tests(self, quick: bool = False) -> bool:
+    def run_tests(self, quick: bool = False, unit_only: bool = False) -> bool:
         """Run the test suite"""
-        logger.info(f"Running {'quick' if quick else 'full'} test suite...")
+        logger.info(
+            f"Running {'quick' if quick else 'unit' if unit_only else 'full'} test suite..."
+        )
 
         try:
+            # If unit_only flag is set, run unit tests that don't require server
+            if unit_only:
+                unit_test_file = Path(__file__).parent / "test_unit.py"
+                if not unit_test_file.exists():
+                    logger.error("Unit test file not found: test_unit.py")
+                    return False
+
+                cmd = [sys.executable, str(unit_test_file)]
+                logger.info("Executing unit test suite (no server required)...")
+
+                try:
+                    result = subprocess.run(
+                        cmd,
+                        capture_output=True,
+                        text=True,
+                        timeout=120,  # 2 minute timeout for unit tests
+                    )
+
+                    # Log test output
+                    if result.stdout:
+                        for line in result.stdout.split("\n"):
+                            if line.strip():
+                                logger.info(f"UNIT TEST: {line}")
+
+                    if result.stderr:
+                        for line in result.stderr.split("\n"):
+                            if line.strip():
+                                logger.warning(f"UNIT TEST ERROR: {line}")
+
+                    if result.returncode == 0:
+                        logger.info("All unit tests passed successfully")
+                        return True
+                    else:
+                        logger.error(
+                            f"Unit tests failed with return code: {result.returncode}"
+                        )
+                        return False
+
+                except subprocess.TimeoutExpired:
+                    logger.error("Unit test execution timed out")
+                    return False
+
+            # Original integration test logic
             test_file = Path(__file__).parent / "test.py"
             if not test_file.exists():
                 logger.error("Test file not found: test.py")
@@ -262,7 +307,7 @@ class CineFusionServer:
 
                 if result.returncode == 0:
                     # If return code is 0, tests passed successfully
-                    logger.info("✓ All tests passed successfully")
+                    logger.info("All tests passed successfully")
                     return True
                 else:
                     logger.error(f"Tests failed with return code: {result.returncode}")
@@ -463,6 +508,9 @@ def main():
     test_parser.add_argument(
         "--quick", action="store_true", help="Run quick tests only"
     )
+    test_parser.add_argument(
+        "--unit", action="store_true", help="Run unit tests only (no server required)"
+    )
 
     # Start command
     start_parser = subparsers.add_parser("start", help="Start the server")
@@ -501,7 +549,9 @@ def main():
                 sys.exit(1)
 
         elif args.command == "test":
-            success = server.run_tests(quick=getattr(args, "quick", False))
+            unit_only = getattr(args, "unit", False)
+            quick = getattr(args, "quick", False)
+            success = server.run_tests(quick=quick, unit_only=unit_only)
             if success:
                 print("✓ All tests passed")
                 sys.exit(0)

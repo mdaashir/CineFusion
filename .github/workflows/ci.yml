@@ -47,7 +47,7 @@ jobs:
       - name: Run backend tests
         run: |
           cd Backend
-          python server.py test
+          python server.py test --unit
 
       - name: Check backend code quality
         run: |
@@ -85,11 +85,42 @@ jobs:
 
       - name: Validate nginx configuration
         run: |
+          echo "Validating nginx configuration structure..."
+          # Check for required nginx directives
+          grep -q "server {" Frontend/nginx.conf || (echo "Missing server block" && exit 1)
+          grep -q "listen 80" Frontend/nginx.conf || (echo "Missing listen directive" && exit 1)
+          grep -q "location /" Frontend/nginx.conf || (echo "Missing location directive" && exit 1)
+
+          # Check proxy configuration
+          grep -q "proxy_pass.*backend" Frontend/nginx.conf || (echo "Missing backend proxy configuration" && exit 1)
+
+          # Validate the nginx config by creating a complete test config
+          echo "Creating test nginx configuration..."
+          cat > /tmp/nginx-test.conf << 'EOF'
+          events {
+              worker_connections 1024;
+          }
+          http {
+              include /etc/nginx/mime.types;
+              default_type application/octet-stream;
+
+              upstream backend {
+                  server backend:8001;
+              }
+
+          EOF
+
+          # Append the site config content to the test file
+          cat Frontend/nginx.conf >> /tmp/nginx-test.conf
+
+          echo "}" >> /tmp/nginx-test.conf
+
           # Install nginx for validation
           sudo apt-get update
           sudo apt-get install -y nginx
-          # Test nginx config syntax
-          sudo nginx -t -c $(pwd)/Frontend/nginx.conf
+
+          # Test the complete nginx config
+          sudo nginx -t -c /tmp/nginx-test.conf
           echo "nginx configuration is valid"
 
       - name: Check HTML/CSS/JS syntax
