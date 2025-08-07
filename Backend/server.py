@@ -125,11 +125,10 @@ class CineFusionServer:
             validations = [
                 ("application.name", str),
                 ("application.version", str),
-                ("server.default_host", str),
-                ("server.default_port", int),
-                ("database.csv_filename", str),
-                ("api.prefix", str),
-                ("logging.levels.default", str),
+                ("backend.server.host", str),
+                ("backend.server.port", int),
+                ("backend.database.csv_file", str),
+                ("backend.api.prefix", str),
             ]
 
             for field_path, expected_type in validations:
@@ -151,7 +150,7 @@ class CineFusionServer:
 
             # Validate file paths
             data_dir = Path(__file__).parent / "data"
-            csv_file = data_dir / config_data["database"]["csv_filename"]
+            csv_file = data_dir / config_data["backend"]["database"]["csv_file"]
 
             if not csv_file.exists():
                 logger.error(f"Movie data file not found: {csv_file}")
