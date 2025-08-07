@@ -12,7 +12,8 @@ services:
       - '8001:8001'
     volumes:
       - ./config.json:/app/config.json:ro
-      - ./Backend/data:/app/data:ro
+      - ./config.json:/app/data/config.json:ro
+      - ./Backend/data/movie_metadata.csv:/app/data/movie_metadata.csv:ro
       - backend_logs:/app/logs
     environment:
       - ENVIRONMENT=production
