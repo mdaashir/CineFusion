@@ -164,10 +164,15 @@ jobs:
 
       - name: Test backend container
         run: |
+          # Create necessary directories and prepare config
+          mkdir -p /tmp/backend-data
+          cp config.json /tmp/backend-data/config.json
+
           # Start backend container
           docker run -d --name test-backend \
             -p 8001:8001 \
             -v $(pwd)/config.json:/app/config.json:ro \
+            -v /tmp/backend-data:/app/data:ro \
             cinefusion-backend:test
 
           # Wait for container to be ready
