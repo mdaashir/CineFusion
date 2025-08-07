@@ -2,10 +2,11 @@
 
 A modern, high-performance movie search and recommendation platform built with FastAPI backend and vanilla JavaScript frontend. Features intelligent autocomplete, advanced search filters, caching, rate limiting, comprehensive production optimizations, and unified configuration management.
 
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
-[![Python](https://img.shields.io/badge/Python-3.8+-3776ab?style=flat&logo=python)](https://python.org/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.116-009688?style=flat&logo=fastapi)](https://fastapi.tiangolo.com/)
+[![Python](https://img.shields.io/badge/Python-3.13+-3776ab?style=flat&logo=python)](https://python.org/)
 [![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-f7df1e?style=flat&logo=javascript)](https://developer.mozilla.org/en-US/docs/Web/JavaScript)
 [![License](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![CI/CD Pipeline](https://github.com/mdaashir/CineFusion/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/mdaashir/CineFusion/actions/workflows/ci.yml)
 
 ## ✨ Key Features
 

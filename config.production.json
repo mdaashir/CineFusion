@@ -1,0 +1,103 @@
+{
+    "application": {
+        "name": "CineFusion",
+        "version": "1.0.0",
+        "description": "Advanced movie discovery platform with dynamic features",
+        "author": "mdaashir",
+        "license": "MIT"
+    },
+    "frontend": {
+        "api": {
+            "base_url": "https://your-backend-url.com/api",
+            "timeout_ms": 10000,
+            "retry_attempts": 3
+        },
+        "ui": {
+            "items_per_page": 24,
+            "debounce_delay": 300,
+            "cache_duration_ms": 600000,
+            "themes": [ "dark", "light" ],
+            "default_theme": "dark",
+            "storage_prefix": "cinefusion_"
+        },
+        "pagination": {
+            "default_page_size": 24,
+            "max_page_size": 100,
+            "show_page_numbers": 5
+        },
+        "search": {
+            "min_query_length": 2,
+            "suggestion_limit": 5,
+            "search_delay_ms": 300
+        }
+    },
+    "backend": {
+        "server": {
+            "host": "0.0.0.0",
+            "port": 8001,
+            "debug": false,
+            "reload": false,
+            "workers": 1,
+            "access_log": true,
+            "timeout": 30
+        },
+        "api": {
+            "prefix": "/api",
+            "title": "CineFusion API",
+            "description": "Movie discovery and search API",
+            "version": "1.0.0",
+            "docs_url": null,
+            "redoc_url": null
+        },
+        "database": {
+            "csv_file": "movie_metadata.csv",
+            "encoding": "utf-8"
+        },
+        "search": {
+            "default_limit": 24,
+            "max_limit": 100,
+            "search_threshold": 0.6
+        },
+        "caching": {
+            "enabled": true,
+            "ttl_seconds": 300,
+            "max_size": 1000
+        },
+        "rate_limiting": {
+            "enabled": true,
+            "requests_per_minute": 100,
+            "block_duration": 300
+        },
+        "cors": {
+            "enabled": true,
+            "origins": [ "https://your-frontend-domain.com" ],
+            "methods": [ "GET", "POST", "OPTIONS" ],
+            "headers": [ "*" ],
+            "credentials": false
+        },
+        "security": {
+            "trusted_hosts": [ "your-frontend-domain.com" ],
+            "enable_security_headers": true
+        },
+        "logging": {
+            "level": "INFO",
+            "format": "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+            "file_rotation": true,
+            "max_file_size": "10MB",
+            "backup_count": 5
+        }
+    },
+    "admin": {
+        "enabled": true,
+        "session_timeout_minutes": 30,
+        "default_credentials": {
+            "username": "admin",
+            "password": "changeme123!"
+        },
+        "features": {
+            "debug_tools": false,
+            "system_stats": true,
+            "cache_management": true
+        }
+    }
+}

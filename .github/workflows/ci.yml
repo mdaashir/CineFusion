@@ -1,0 +1,370 @@
+name: CineFusion CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: '3.13'
+  NODE_VERSION: '22'
+
+jobs:
+  test-backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ env.PYTHON_VERSION }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: 'pip'
+
+      - name: Cache Python dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('Backend/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      - name: Install backend dependencies
+        run: |
+          cd Backend
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Validate backend configuration
+        run: |
+          cd Backend
+          python server.py validate
+
+      - name: Run backend tests
+        run: |
+          cd Backend
+          python server.py test
+
+      - name: Check backend code quality
+        run: |
+          cd Backend
+          # Basic syntax check
+          python -m py_compile main.py
+          python -m py_compile server.py
+          python -m py_compile test.py
+
+  test-frontend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Validate frontend structure
+        run: |
+          # Check if required files exist
+          test -f Frontend/index.html || (echo "Missing Frontend/index.html" && exit 1)
+          test -f Frontend/app.html || (echo "Missing Frontend/app.html" && exit 1)
+          test -f Frontend/script.js || (echo "Missing Frontend/script.js" && exit 1)
+          test -f Frontend/styles.css || (echo "Missing Frontend/styles.css" && exit 1)
+          test -f Frontend/Dockerfile || (echo "Missing Frontend/Dockerfile" && exit 1)
+          test -f Frontend/nginx.conf || (echo "Missing Frontend/nginx.conf" && exit 1)
+          test -f config.json || (echo "Missing config.json" && exit 1)
+          echo "All required frontend files exist"
+
+      - name: Validate JSON configuration
+        run: |
+          # Validate JSON syntax
+          python -m json.tool config.json > /dev/null
+          echo "config.json is valid JSON"
+
+      - name: Validate nginx configuration
+        run: |
+          # Install nginx for validation
+          sudo apt-get update
+          sudo apt-get install -y nginx
+          # Test nginx config syntax
+          sudo nginx -t -c $(pwd)/Frontend/nginx.conf
+          echo "nginx configuration is valid"
+
+      - name: Check HTML/CSS/JS syntax
+        run: |
+          # Basic HTML validation (check for basic structure)
+          grep -q "<html" Frontend/index.html && echo "✓ index.html has valid structure"
+          grep -q "<html" Frontend/app.html && echo "✓ app.html has valid structure"
+
+          # Check if JS file is valid (basic syntax check)
+          node -c Frontend/script.js && echo "✓ script.js syntax is valid"
+
+  build-and-test-docker:
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build backend Docker image
+        run: |
+          docker build -t cinefusion-backend:test ./Backend
+          echo "Backend Docker image built successfully"
+
+      - name: Build frontend Docker image
+        run: |
+          docker build -t cinefusion-frontend:test ./Frontend
+          echo "Frontend Docker image built successfully"
+
+      - name: Test backend container
+        run: |
+          # Start backend container
+          docker run -d --name test-backend \
+            -p 8001:8001 \
+            -v $(pwd)/config.json:/app/config.json:ro \
+            cinefusion-backend:test
+
+          # Wait for container to be ready
+          echo "Waiting for backend to start..."
+          for i in {1..30}; do
+            if curl -f http://localhost:8001/health >/dev/null 2>&1; then
+              echo "Backend health check passed"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Backend failed to start within 30 seconds"
+              docker logs test-backend
+              exit 1
+            fi
+            sleep 2
+          done
+
+          # Additional API tests
+          curl -f http://localhost:8001/health | grep -q "ok" || (echo "Health endpoint failed" && exit 1)
+          echo "Backend container is working correctly"
+
+          # Clean up
+          docker stop test-backend
+          docker rm test-backend
+
+      - name: Test frontend container
+        run: |
+          # Start frontend container
+          docker run -d --name test-frontend \
+            -p 8000:80 \
+            -v $(pwd)/config.json:/usr/share/nginx/html/config.json:ro \
+            cinefusion-frontend:test
+
+          # Wait for container to be ready
+          echo "Waiting for frontend to start..."
+          for i in {1..15}; do
+            if curl -f http://localhost:8000/ >/dev/null 2>&1; then
+              echo "Frontend is accessible"
+              break
+            fi
+            if [ $i -eq 15 ]; then
+              echo "Frontend failed to start within 15 seconds"
+              docker logs test-frontend
+              exit 1
+            fi
+            sleep 2
+          done
+
+          # Test main pages
+          curl -f http://localhost:8000/ >/dev/null || (echo "Index page failed" && exit 1)
+          curl -f http://localhost:8000/app.html >/dev/null || (echo "App page failed" && exit 1)
+          echo "Frontend container is working correctly"
+
+          # Clean up
+          docker stop test-frontend
+          docker rm test-frontend
+
+      - name: Test docker-compose setup
+        run: |
+          # Test the complete setup with docker-compose
+          echo "Testing complete docker-compose setup..."
+          docker-compose up -d
+
+          # Wait for services to be ready
+          echo "Waiting for services to start..."
+          sleep 30
+
+          # Test backend through docker-compose
+          curl -f http://localhost:8001/health || (echo "Backend failed in docker-compose" && docker-compose logs && exit 1)
+
+          # Test frontend through docker-compose
+          curl -f http://localhost:8000/ || (echo "Frontend failed in docker-compose" && docker-compose logs && exit 1)
+
+          echo "Docker-compose setup working correctly"
+
+          # Clean up
+          docker-compose down
+
+      - name: Clean up Docker resources
+        if: always()
+        run: |
+          # Clean up any remaining containers and images
+          docker system prune -f
+          echo "Docker cleanup completed"
+
+  security-scan:
+    runs-on: ubuntu-latest
+    needs: [test-backend, test-frontend]
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v2
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Check for high-severity vulnerabilities
+        run: |
+          # Count high and critical vulnerabilities
+          if [ -f trivy-results.sarif ]; then
+            HIGH_VULN=$(cat trivy-results.sarif | jq '[.runs[].results[] | select(.level == "error")] | length')
+            if [ "$HIGH_VULN" -gt 0 ]; then
+              echo "Found $HIGH_VULN high/critical vulnerabilities"
+              echo "Please review the security tab for details"
+              # Don't fail the build, just warn
+              echo "::warning::Found $HIGH_VULN high/critical vulnerabilities"
+            else
+              echo "No high/critical vulnerabilities found"
+            fi
+          fi
+
+  performance-test:
+    runs-on: ubuntu-latest
+    needs: [build-and-test-docker]
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/dev')
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Start application for performance testing
+        run: |
+          # Build and start the application
+          docker-compose up -d
+
+          # Wait for services to be ready
+          echo "Waiting for services to start..."
+          sleep 30
+
+          # Verify services are running
+          curl -f http://localhost:8001/health || (echo "Backend not ready" && exit 1)
+          curl -f http://localhost:8000/ || (echo "Frontend not ready" && exit 1)
+
+      - name: Install performance testing tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y apache2-utils curl jq
+
+      - name: Run basic performance tests
+        run: |
+          echo "Running basic performance tests..."
+
+          # Test backend API performance
+          echo "Testing backend API..."
+          ab -n 100 -c 10 http://localhost:8001/health > backend_perf.txt
+          cat backend_perf.txt
+
+          # Test frontend performance
+          echo "Testing frontend..."
+          ab -n 50 -c 5 http://localhost:8000/ > frontend_perf.txt
+          cat frontend_perf.txt
+
+          # Extract and validate response times
+          BACKEND_TIME=$(grep "Time per request:" backend_perf.txt | head -1 | awk '{print $4}')
+          FRONTEND_TIME=$(grep "Time per request:" frontend_perf.txt | head -1 | awk '{print $4}')
+
+          echo "Backend average response time: ${BACKEND_TIME}ms"
+          echo "Frontend average response time: ${FRONTEND_TIME}ms"
+
+          # Simple performance thresholds (adjust as needed)
+          if (( $(echo "$BACKEND_TIME > 1000" | bc -l) )); then
+            echo "::warning::Backend response time ($BACKEND_TIME ms) is higher than expected"
+          fi
+
+          if (( $(echo "$FRONTEND_TIME > 2000" | bc -l) )); then
+            echo "::warning::Frontend response time ($FRONTEND_TIME ms) is higher than expected"
+          fi
+
+      - name: Cleanup performance test
+        if: always()
+        run: |
+          docker-compose down
+          docker system prune -f
+
+  deployment-readiness:
+    runs-on: ubuntu-latest
+    needs: [build-and-test-docker, security-scan]
+    if: github.ref == 'refs/heads/main'
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Check deployment readiness
+        run: |
+          echo "Checking deployment readiness..."
+
+          # Check if all required files exist
+          REQUIRED_FILES=(
+            "docker-compose.yml"
+            "config.json"
+            "config.production.json"
+            "Backend/Dockerfile"
+            "Frontend/Dockerfile"
+            "README.md"
+          )
+
+          for file in "${REQUIRED_FILES[@]}"; do
+            if [ ! -f "$file" ]; then
+              echo "Missing required file: $file"
+              exit 1
+            fi
+            echo "Found: $file"
+          done
+
+          # Validate production configuration
+          python -m json.tool config.production.json > /dev/null
+          echo "Production configuration is valid"
+
+          echo "All deployment readiness checks passed!"
+          echo "Ready for production deployment!"
+
+      - name: Generate deployment summary
+        run: |
+          echo "## 📋 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- Backend tests passed" >> $GITHUB_STEP_SUMMARY
+          echo "- Frontend validation passed" >> $GITHUB_STEP_SUMMARY
+          echo "- Docker containers built and tested" >> $GITHUB_STEP_SUMMARY
+          echo "- Security scan completed" >> $GITHUB_STEP_SUMMARY
+          echo "- Deployment readiness verified" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Ready for production deployment!**" >> $GITHUB_STEP_SUMMARY
