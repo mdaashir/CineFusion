@@ -1416,7 +1416,11 @@ if config.DEBUG:
 
 # Static file serving for development
 if config.DEBUG:
-    app.mount("/static", StaticFiles(directory="static"), name="static")
+    import os
+
+    static_dir = "static"
+    if os.path.exists(static_dir) and os.path.isdir(static_dir):
+        app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 
 # Health check endpoint for load balancers
