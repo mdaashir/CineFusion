@@ -244,22 +244,22 @@ jobs:
         run: |
           # Test the complete setup with docker-compose
           echo "Testing complete docker-compose setup..."
-          docker-compose up -d
+          docker compose up -d
 
           # Wait for services to be ready
           echo "Waiting for services to start..."
           sleep 30
 
           # Test backend through docker-compose
-          curl -f http://localhost:8001/health || (echo "Backend failed in docker-compose" && docker-compose logs && exit 1)
+          curl -f http://localhost:8001/health || (echo "Backend failed in docker-compose" && docker compose logs && exit 1)
 
           # Test frontend through docker-compose
-          curl -f http://localhost:8000/ || (echo "Frontend failed in docker-compose" && docker-compose logs && exit 1)
+          curl -f http://localhost:8000/ || (echo "Frontend failed in docker-compose" && docker compose logs && exit 1)
 
           echo "Docker-compose setup working correctly"
 
           # Clean up
-          docker-compose down
+          docker compose down
 
       - name: Clean up Docker resources
         if: always()
@@ -322,7 +322,7 @@ jobs:
       - name: Start application for performance testing
         run: |
           # Build and start the application
-          docker-compose up -d
+          docker compose up -d
 
           # Wait for services to be ready
           echo "Waiting for services to start..."
@@ -370,7 +370,7 @@ jobs:
       - name: Cleanup performance test
         if: always()
         run: |
-          docker-compose down
+          docker compose down
           docker system prune -f
 
   deployment-readiness:
@@ -414,7 +414,7 @@ jobs:
 
       - name: Generate deployment summary
         run: |
-          echo "## 📋 Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "## Deployment Summary" >> $GITHUB_STEP_SUMMARY
           echo "- Backend tests passed" >> $GITHUB_STEP_SUMMARY
           echo "- Frontend validation passed" >> $GITHUB_STEP_SUMMARY
           echo "- Docker containers built and tested" >> $GITHUB_STEP_SUMMARY
