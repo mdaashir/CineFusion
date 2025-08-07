@@ -96,7 +96,16 @@ jobs:
 
           # Validate the nginx config by creating a complete test config
           echo "Creating test nginx configuration..."
-          cat > /tmp/nginx-test.conf << 'EOF'
+
+          # Check if the nginx.conf is already a complete config
+          if grep -q "events\s*{" Frontend/nginx.conf && grep -q "http\s*{" Frontend/nginx.conf; then
+            echo "nginx.conf appears to be a complete configuration"
+            # Create a test config with backend hostname replaced
+            sed 's/backend:8001/127.0.0.1:8001/g' Frontend/nginx.conf > /tmp/nginx-test.conf
+          else
+            echo "nginx.conf appears to be a server block only"
+            # Create a complete config wrapper
+            cat > /tmp/nginx-test.conf << 'EOF'
           events {
               worker_connections 1024;
           }
@@ -109,11 +118,10 @@ jobs:
               }
 
           EOF
-
-          # Append the site config content to the test file
-          cat Frontend/nginx.conf >> /tmp/nginx-test.conf
-
-          echo "}" >> /tmp/nginx-test.conf
+            # Append the site config content to the test file
+            cat Frontend/nginx.conf >> /tmp/nginx-test.conf
+            echo "}" >> /tmp/nginx-test.conf
+          fi
 
           # Install nginx for validation
           sudo apt-get update
