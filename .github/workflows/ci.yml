@@ -200,11 +200,21 @@ jobs:
 
       - name: Test frontend container
         run: |
+          # Create a test nginx configuration for standalone testing
+          mkdir -p /tmp/frontend-test
+          cp -r Frontend/* /tmp/frontend-test/
+
+          # Replace backend hostname with localhost for testing
+          sed 's/backend:8001/127.0.0.1:8001/g' Frontend/nginx.conf > /tmp/frontend-test/nginx.conf
+
+          # Build test frontend image with modified config
+          docker build -t cinefusion-frontend:test-standalone /tmp/frontend-test
+
           # Start frontend container
           docker run -d --name test-frontend \
             -p 8000:80 \
             -v $(pwd)/config.json:/usr/share/nginx/html/config.json:ro \
-            cinefusion-frontend:test
+            cinefusion-frontend:test-standalone
 
           # Wait for container to be ready
           echo "Waiting for frontend to start..."
