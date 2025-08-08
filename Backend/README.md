@@ -2,54 +2,26 @@
 
 > **A production-ready FastAPI backend for intelligent movie search and recommendations**
 
-[![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
-[![FastAPI](https://img.shields.io/badge/FastAPI-0.104+-green.svg)](https://fastapi.tiangolo.com/)
+[![Python 3.13+](https://img.shields.io/badge/python-3.13+-blue.svg)](https://www.python.org/downloads/)
+[![FastAPI](https://img.shields.io/badge/FastAPI-0.116.1-green.svg)](https://fastapi.tiangolo.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Code Style: Black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
 ## 📋 Table of Contents
 
-- [🎬 CineFusion Backend](#-cinefusion-backend)
-  - [📋 Table of Contents](#-table-of-contents)
-  - [🌟 Features](#-features)
-    - [Core Functionality](#core-functionality)
-    - [Performance \& Scalability](#performance--scalability)
-    - [Production-Ready Features](#production-ready-features)
-  - [🛠️ Technology Stack](#️-technology-stack)
-  - [📁 Project Structure](#-project-structure)
-  - [🚀 Quick Start](#-quick-start)
-    - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
-    - [Running the Server](#running-the-server)
-  - [📖 Server Management](#-server-management)
-    - [Server Commands](#server-commands)
-    - [Configuration Validation](#configuration-validation)
-    - [Testing](#testing)
-    - [Production Deployment](#production-deployment)
-  - [🔧 Configuration](#-configuration)
-    - [Environment Variables](#environment-variables)
-    - [JSON Configuration](#json-configuration)
-  - [📊 API Documentation](#-api-documentation)
-    - [Core Endpoints](#core-endpoints)
-    - [Search \& Autocomplete](#search--autocomplete)
-    - [Movie Data](#movie-data)
-    - [Health \& Monitoring](#health--monitoring)
-  - [📝 Logging System](#-logging-system)
-    - [Log Types](#log-types)
-    - [Log Structure](#log-structure)
-    - [Log Files](#log-files)
-  - [🚀 Performance Features](#-performance-features)
-    - [Caching System](#caching-system)
-    - [Rate Limiting](#rate-limiting)
-    - [Data Structures](#data-structures)
-  - [🔒 Security Features](#-security-features)
-    - [Middleware](#middleware)
-    - [Security Logging](#security-logging)
-    - [Input Validation](#input-validation)
-  - [🧪 Testing](#-testing)
-    - [Test Suite Features](#test-suite-features)
-    - [Running Tests](#running-tests)
-    - [Test Categories](#test-categories)
+- [ Features](#-features)
+- [🛠️ Technology Stack](#️-technology-stack)
+- [📁 Project Structure](#-project-structure)
+- [🚀 Quick Start](#-quick-start)
+- [📖 Server Management](#-server-management)
+- [🔧 Configuration](#-configuration)
+- [📊 API Documentation](#-api-documentation)
+- [📝 Logging System](#-logging-system)
+- [🚀 Performance Features](#-performance-features)
+- [🔒 Security Features](#-security-features)
+- [🧪 Testing](#-testing)
+  - [Running Tests](#running-tests)
+  - [Test Categories](#test-categories)
   - [📈 Monitoring \& Health Checks](#-monitoring--health-checks)
     - [Health Check Endpoints](#health-check-endpoints)
     - [Monitoring Features](#monitoring-features)
@@ -91,94 +63,178 @@
 
 ### Core Functionality
 
-- **🔍 Intelligent Movie Search** - Advanced search with fuzzy matching and relevance scoring
-- **⚡ Real-time Autocomplete** - Fast suggestions using optimized Trie data structure
-- **🎯 Advanced Filtering** - Filter by genre, year, rating, director, and more
-- **📊 Multi-criteria Sorting** - Sort by rating, year, popularity, and relevance
-- **🎬 Rich Movie Data** - Comprehensive movie metadata with detailed information
+- **🔍 Intelligent Movie Search** - Multi-field search across 5,000+ movies with relevance scoring
+- **⚡ Real-time Autocomplete** - Sub-20ms suggestions using optimized Trie data structure
+- **🎯 Advanced Filtering** - Filter by genre, year range, rating, director, cast, and runtime
+- **📊 Multi-criteria Sorting** - Sort by title, year, rating, votes, or runtime with boost factors
+- **🎬 Rich Movie Metadata** - Comprehensive dataset with IMDb ratings, cast, plot, and detailed info
 
 ### Performance & Scalability
 
-- **💾 Advanced Caching** - LRU cache with TTL and intelligent eviction
-- **⚖️ Rate Limiting** - Sliding window rate limiting with configurable limits
-- **📈 Performance Monitoring** - Real-time metrics and performance tracking
-- **🔄 Auto-balancing Data Structures** - AVL trees for efficient data storage
+- **💾 Advanced Caching** - Multi-layer LRU cache with configurable TTL (300-7200s) and size limits
+- **⚖️ Rate Limiting** - Per-IP sliding window limiting (60 req/min) with burst handling and whitelisting
+- **📈 Real-time Monitoring** - Performance metrics, cache statistics, and system health tracking
+- **🔄 Optimized Data Structures** - AVL trees and Trie for O(log n) and O(m) operations
+- **⚡ Response Optimization** - Compression, ETags, and response caching for <50ms API calls
 
 ### Production-Ready Features
 
-- **📝 Comprehensive Logging** - Structured JSON logging with file rotation
-- **🔒 Security Middleware** - CORS, trusted hosts, and security headers
-- **🏥 Health Checks** - Detailed health monitoring and status reporting
-- **🚨 Error Handling** - Graceful error handling with detailed error responses
-- **🧪 Comprehensive Testing** - 100% test coverage with automated test suite
+- **📝 Structured Logging** - JSON-formatted logs with rotation, multiple loggers, and console output
+- **🔒 Security Middleware** - CORS, trusted hosts, security headers, and input validation
+- **🏥 Comprehensive Health Checks** - System status, database health, cache metrics, and uptime tracking
+- **🚨 Graceful Error Handling** - Detailed error responses with proper HTTP status codes
+- **🧪 Testing Suite** - Unit tests, integration tests, and API validation
 
 ## 🛠️ Technology Stack
 
-| Component           | Technology             | Purpose                                       |
-| ------------------- | ---------------------- | --------------------------------------------- |
-| **Framework**       | FastAPI                | High-performance async web framework          |
-| **Language**        | Python 3.8+            | Core backend language                         |
-| **Data Processing** | Pandas                 | Movie data manipulation and analysis          |
-| **Data Structures** | Custom Trie & AVL Tree | Optimized search and autocomplete             |
-| **Validation**      | Pydantic               | Request/response validation and serialization |
-| **Server**          | Uvicorn                | ASGI server for production deployment         |
-| **Logging**         | Python Logging         | Structured logging with file rotation         |
-| **Testing**         | Custom Test Suite      | Comprehensive API testing framework           |
+| Component           | Technology             | Version | Purpose                                       |
+| ------------------- | ---------------------- | ------- | --------------------------------------------- |
+| **Framework**       | FastAPI                | 0.116.1 | High-performance async web framework          |
+| **Language**        | Python                 | 3.13+   | Core backend language with type hints         |
+| **Data Processing** | Pandas                 | 2.3.1   | Movie data manipulation and analysis          |
+| **Data Structures** | Custom Trie & AVL Tree | -       | Optimized search and autocomplete             |
+| **Validation**      | Pydantic               | 2.11.7  | Request/response validation and serialization |
+| **Server**          | Uvicorn                | 0.35.0  | ASGI server for production deployment         |
+| **Monitoring**      | Psutil                 | 7.0.0   | System resource monitoring                    |
+| **HTTP Client**     | Requests               | 2.32.4  | External API communication                    |
+| **Configuration**   | JSON + Environment     | -       | Unified configuration management              |
 
 ## 📁 Project Structure
 
 ```
 Backend/
-├── 📄 server.py              # Server management script (replaces start_production.py)
-├── 📄 main.py                # FastAPI application with all endpoints
-├── 📄 config.py              # Configuration management
-├── 📄 monitoring.py          # Performance monitoring and alerts
-├── 📄 logger.py              # Comprehensive logging system (JSON-configured)
-├── 📄 test.py                # Comprehensive test suite
-├── 📄 README.md              # This documentation
-├── � Dockerfile            # Docker container configuration
-├── �📁 data/                  # Data files and configuration
-│   ├── 🎬 movie_metadata.csv # Movie database (5000+ movies)
-│   └── ⚙️ config.json        # Application configuration
-├── 📁 process/               # Data structure implementations
-│   ├── 🌳 trie.py            # Trie for autocomplete
-│   └── 🌲 avl.py             # AVL tree for balanced storage
-└── 📁 logs/                  # Log files (auto-created)
-│   ├── 📊 cinefusion_api.log      # API request logs
-│   ├── ⚡ cinefusion_performance.log # Performance metrics
-│   ├── 🚨 cinefusion_errors.log     # Error logs
-│   ├── 🔒 cinefusion_security.log   # Security events
-│   └── 📅 cinefusion_daily.log      # Daily consolidated
-└── 📁 static/                # Static files (Optional)
+├── � main.py                    # FastAPI application core with all endpoints
+├── ⚙️ config.py                  # Configuration management and validation
+├── 🖥️ server.py                  # Server management utilities and health checks
+├── � monitoring.py              # Performance monitoring and alert system
+├── � logger.py                  # Advanced logging system with JSON formatting
+├── 🧪 test_unit.py               # Unit test suite
+├── 🧪 test.py                    # Integration tests and API validation
+├── 📋 requirements.txt           # Python dependencies
+├── 📦 pyproject.toml             # Modern Python project configuration
+├── 🔒 uv.lock                    # Dependency lock file for reproducible builds
+├── 🐳 Dockerfile                 # Docker container configuration
+├── 📖 README.md                  # This documentation
+├── � data/                      # Dataset and configuration files
+│   └── 🎬 movie_metadata.csv    # Movie database (5,000+ movies)
+├── 🧠 process/                   # Core algorithms and data structures
+│   ├── � trie.py               # Trie implementation for autocomplete
+│   └── � avl.py                # AVL tree for balanced search operations
+└── 📁 logs/                     # Log files (auto-created at runtime)
+    ├── 📊 cinefusion_app.log    # Application events and requests
+    ├── 🚀 cinefusion_access.log # HTTP access logs
+    ├── 🚨 cinefusion_errors.log # Error and warning logs
+    ├── 🔒 cinefusion_security.log # Security events and rate limiting
+    └── 📅 cinefusion_daily.log  # Daily consolidated logs
 ```
 
 ## 🚀 Quick Start
 
 ### Prerequisites
 
-- **Python 3.8+** (3.9+ recommended)
-- **pip** package manager
-- **10MB+ free disk space**
-- **512MB+ available RAM**
+- **Python 3.13+** (3.13 recommended for latest features)
+- **pip** package manager or **uv** for faster dependency management
+- **10MB+ free disk space** for application and logs
+- **512MB+ available RAM** for dataset loading
 
 ### Installation
 
-1. **Clone and navigate to the backend directory:**
+1. **Navigate to the backend directory:**
 
-   ```bash
-   cd Backend/
-   ```
+```bash
+cd Backend/
+```
 
-2. **Install required packages:**
+2. **Create and activate virtual environment:**
 
-   ```bash
-   pip install fastapi uvicorn pandas pydantic
-   ```
+```bash
+python -m venv venv
 
-3. **Verify installation:**
-   ```bash
-   python server.py validate
-   ```
+# Windows PowerShell
+venv\Scripts\Activate.ps1
+
+# Windows Command Prompt
+venv\Scripts\activate.bat
+
+# Linux/Mac
+source venv/bin/activate
+```
+
+3. **Install dependencies:**
+
+```bash
+# Standard installation
+pip install -r requirements.txt
+
+# Fast installation with uv
+pip install uv
+uv pip install -r requirements.txt
+
+# Development installation (includes testing tools)
+pip install -r requirements.txt pytest black flake8
+```
+
+4. **Verify installation:**
+
+```bash
+python -c "import fastapi, pandas, uvicorn; print('✅ All dependencies installed')"
+```
+
+### Running the Server
+
+#### Development Mode
+
+```bash
+# Quick start (development server)
+python main.py
+
+# With uvicorn (recommended)
+uvicorn main:app --reload --host 0.0.0.0 --port 8001
+
+# Using server management script
+python server.py start
+python server.py start --dev  # Development mode with auto-reload
+```
+
+#### Production Mode
+
+```bash
+# Production server with optimizations
+python server.py start --prod
+
+# Manual uvicorn production setup
+uvicorn main:app --host 0.0.0.0 --port 8001 --workers 4
+
+# With environment variables
+ENVIRONMENT=production uvicorn main:app --host 0.0.0.0 --port 8001
+```
+
+#### Quick Health Check
+
+```bash
+# Test server health
+python server.py health
+
+# Or via curl
+curl http://localhost:8001/api/health
+```
+
+### First API Request
+
+```bash
+# Search for movies
+curl "http://localhost:8001/api/search?q=batman&limit=5"
+
+# Get autocomplete suggestions
+curl "http://localhost:8001/api/suggestions?q=bat"
+
+# View API documentation
+# Open http://localhost:8001/docs in your browser
+```
+
+```bash
+python server.py validate
+```
 
 ### Running the Server
 
